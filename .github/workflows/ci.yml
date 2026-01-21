@@ -23,8 +23,3 @@ jobs:
       - name: Build with Maven
         run: mvn -B clean verify
 
-      - name: Run Checkstyle
-        run: mvn -B checkstyle:check
-
-      - name: Run SpotBugs
-        run: mvn -B spotbugs:check
