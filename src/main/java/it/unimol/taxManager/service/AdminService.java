@@ -81,7 +81,7 @@ public class AdminService {
         Student student = studentRepository.findById(studentId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Studente non trovato"));
 
         // Se il valore ISEE è già uguale a quello fornito, non fare nulla
-        if (student.getISEE() == studentISEE.isee()) {
+        if (Math.abs(student.getISEE() - studentISEE.isee()) < 0.0001) {
             return false;
         }
 
@@ -274,12 +274,12 @@ public class AdminService {
             throw new JwtTokenException("L'utente non ha i permessi sufficienti.", JwtTokenException.Reason.UNAUTHORIZED_ROLE);
         }
     }
-
+     /*
     private Date getExpirationDate(int anno, int mese, int giorno) {
         Calendar calendar = Calendar.getInstance();
         calendar.set(anno, mese, giorno, 0, 0, 0);
         calendar.set(Calendar.MILLISECOND, 0);
         return calendar.getTime();
-    }
+    }*/
 
 }

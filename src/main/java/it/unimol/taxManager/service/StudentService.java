@@ -17,6 +17,7 @@ import org.springframework.web.server.ResponseStatusException;
 import org.thymeleaf.spring6.SpringTemplateEngine;
 import org.thymeleaf.spring6.templateresolver.SpringResourceTemplateResolver;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
@@ -234,7 +235,7 @@ public class StudentService {
     }
 
     public String generateHtmlFromRawTemplate(String templateName, Map<String, String> variables) {
-        try (InputStream is = getClass().getResourceAsStream("/templates/" + templateName);
+        try (InputStream is = StudentService.class.getResourceAsStream("/templates/" + templateName);
 
              Scanner scanner = new Scanner(is, StandardCharsets.UTF_8)) {
 
@@ -246,7 +247,7 @@ public class StudentService {
 
             return html;
 
-        } catch (Exception e) {
+        } catch (IOException | NoSuchElementException e) {
             throw new RuntimeException("Errore nel parsing del template: " + templateName, e);
         }
     }

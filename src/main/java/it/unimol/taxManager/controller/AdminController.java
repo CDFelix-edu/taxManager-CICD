@@ -1,5 +1,6 @@
 package it.unimol.taxManager.controller;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.swagger.v3.oas.annotations.*;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
@@ -17,6 +18,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
+import java.util.Objects;
 
 @RestController
 @RequestMapping("/api/v1/admin")
@@ -25,6 +27,7 @@ public class AdminController {
     private final AdminService adminService;
     NotificationSender notificationSender;
 
+    @SuppressFBWarnings("EI_EXPOSE_REP2")
     public AdminController(AdminService adminService, NotificationSender notificationSender) {
         this.adminService = adminService;
         this.notificationSender = notificationSender;

@@ -114,6 +114,14 @@
             <scope>test</scope>
         </dependency>
 
+        <!-- LINTER & SPOTBUGS ANNOTATIONS -->
+        <dependency>
+            <groupId>com.github.spotbugs</groupId>
+            <artifactId>spotbugs-annotations</artifactId>
+            <version>4.8.6</version>
+            <scope>compile</scope>
+        </dependency>
+
         <!-- FIXME: dipendenze non usate che forse possono essere rimosse
         <dependency>
             <groupId>io.jsonwebtoken</groupId>
@@ -160,7 +168,6 @@
                 </executions>
                 <configuration>
                     <configLocation>google_checks.xml</configLocation>
-                    <encoding>UTF-8</encoding>
                     <consoleOutput>true</consoleOutput>
                     <failsOnError>true</failsOnError>
                 </configuration>

@@ -1,9 +1,11 @@
 package it.unimol.taxManager.model;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import it.unimol.taxManager.util.TaxStatus;
 import jakarta.persistence.*;
 
 import java.time.LocalDate;
+import java.util.Objects;
 
 @Entity
 @Table(name = "taxes")
@@ -49,6 +51,7 @@ public class Tax {
         this.creationDate = LocalDate.now();
     }
 
+    @SuppressFBWarnings("EI_EXPOSE_REP2")
     public Tax(Student student, Double amount, TaxStatus status, LocalDate expirationDate, String pagoPaNoticeCode) {
         this.student = student;
         this.amount = amount;

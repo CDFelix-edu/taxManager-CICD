@@ -46,11 +46,11 @@ public class NotificationSender {
                     if (tax.getStatus().equals(TaxStatus.PENDING) && tax.getExpirationDate().isBefore(LocalDate.now().plusDays(8))) {
                         StudentDetailsDTO studentDetailsDTO = gestioneUtentiClient.getStudentById(token.token(), student.getId());
                         System.out.println("La tassa n° " + tax.getId() + " dello studente " + student.getId() + " con email: " + studentDetailsDTO.email() + " sta per scadere\n");
-//                        message.setTo(studentDetailsDTO.email(););
-//                        message.setSubject("Tassa in scadenza");
-//                        message.setText("La tassa n° " + tax.getId() + " scadrà la prossima settimana");
-//                        message.setFrom("mail.unimol.it");
-//                        mailSender.send(message);
+                        message.setTo(studentDetailsDTO.email());
+                        message.setSubject("Tassa in scadenza");
+                        message.setText("La tassa n° " + tax.getId() + " scadrà la prossima settimana");
+                        message.setFrom("mail.unimol.it");
+                        mailSender.send(message);
                     }
                 }
             }
