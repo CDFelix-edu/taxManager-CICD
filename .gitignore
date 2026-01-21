@@ -31,3 +31,10 @@ build/
 
 ### VS Code ###
 .vscode/
+
+*.log
+
+### Temporanee ###
+Dockerfile
+docker-compose.yml
+docker-stack.yml
