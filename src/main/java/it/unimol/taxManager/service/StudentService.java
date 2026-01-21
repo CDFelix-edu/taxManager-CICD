@@ -2,7 +2,6 @@ package it.unimol.taxManager.service;
 
 import it.unimol.taxManager.client.gestioneUtenti.GestioneUtentiClient;
 import it.unimol.taxManager.client.reportAndAnalysisManager.ReportAndAnalysisClient;
-import it.unimol.taxManager.dto.*;
 import it.unimol.taxManager.exception.JwtTokenException;
 import it.unimol.taxManager.model.Tax;
 import it.unimol.taxManager.repository.StudentRepository;
@@ -14,16 +13,24 @@ import it.unimol.taxManager.util.TaxStatus;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
-import org.thymeleaf.spring6.SpringTemplateEngine;
-import org.thymeleaf.spring6.templateresolver.SpringResourceTemplateResolver;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Scanner;
+import java.util.NoSuchElementException;
+import java.util.Objects;
 
+//DTO
+import it.unimol.taxManager.dto.StudentDetailsDTO;
+import it.unimol.taxManager.dto.StudentProgressDTO;
+import it.unimol.taxManager.dto.StudentStatusDTO;
+import it.unimol.taxManager.dto.TaxDTO;
 @Service
 public class StudentService {
 
@@ -59,7 +66,7 @@ public class StudentService {
         validateToken(token, studentId);
 
         checkStudentId(studentId);
-        List<Tax> taxes = taxRepository.findTaxesByStudent_Id(studentId);
+        List<Tax> taxes = taxRepository.findTaxesByStudentId(studentId);
         List<TaxDTO> taxDTOs = new ArrayList<>();
 
         if (taxes == null || taxes.isEmpty()) {
@@ -100,7 +107,7 @@ public class StudentService {
             return new StudentStatusDTO(StudentStatus.COMPLETATO.getStatus(), true);
         }
 
-        List<Tax> taxes = taxRepository.findTaxesByStudent_Id(studentId);
+        List<Tax> taxes = taxRepository.findTaxesByStudentId(studentId);
 
         if (taxes == null || taxes.isEmpty()) {
             if (studentRepository.findById(studentId).get().getStato().equals(StudentStatus.ATTIVO)) {

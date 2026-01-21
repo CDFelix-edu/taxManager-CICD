@@ -1,5 +1,7 @@
 package it.unimol.taxManager.repository;
 
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import it.unimol.taxManager.model.Tax;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -16,5 +18,7 @@ public interface TaxRepository extends JpaRepository<Tax, Long> {
 //
     Tax findByPagoPaNoticeCode(String pagoPaNoticeCode);
 
-    List<Tax> findTaxesByStudent_Id(String studentId);
+    @Query("SELECT t FROM Tax t WHERE t.student.id = :studentId")
+    List<Tax> findTaxesByStudentId(@Param("studentId") String studentId);
+
 }

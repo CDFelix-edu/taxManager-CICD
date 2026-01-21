@@ -1,6 +1,7 @@
 package it.unimol.taxManager.model;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
 
 @Entity
 public class Brackets {

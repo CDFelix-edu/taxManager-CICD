@@ -60,7 +60,7 @@ public class TaxService {
     }
 
     private boolean haveExpiredTaxes(Student student) {
-        List<Tax> taxes = taxRepository.findTaxesByStudent_Id(student.getId());
+        List<Tax> taxes = taxRepository.findTaxesByStudentId(student.getId());
         if (taxes.isEmpty()) {
             return false;
         }
@@ -78,7 +78,7 @@ public class TaxService {
     }
 
     private boolean haveAllPaidTaxes(Student student) {
-        List<Tax> taxes = taxRepository.findTaxesByStudent_Id(student.getId());
+        List<Tax> taxes = taxRepository.findTaxesByStudentId(student.getId());
         if (taxes.isEmpty()) {
             return true;
         }

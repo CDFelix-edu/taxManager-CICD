@@ -41,7 +41,7 @@ public class NotificationSender {
         SimpleMailMessage message = new SimpleMailMessage();
         for (Student student : students) {
             if (!student.getStato().equals(StudentStatus.COMPLETATO) && !student.getStato().equals(StudentStatus.ATTIVO) && !student.getStato().equals(StudentStatus.CESSATO)) {
-                List<Tax> studentTaxes = taxRepository.findTaxesByStudent_Id(student.getId());
+                List<Tax> studentTaxes = taxRepository.findTaxesByStudentId(student.getId());
                 for (Tax tax : studentTaxes) {
                     if (tax.getStatus().equals(TaxStatus.PENDING) && tax.getExpirationDate().isBefore(LocalDate.now().plusDays(8))) {
                         StudentDetailsDTO studentDetailsDTO = gestioneUtentiClient.getStudentById(token.token(), student.getId());
