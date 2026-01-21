@@ -165,7 +165,7 @@
                             <goal>check</goal>
                         </goals>
                         <configuration>
-                            <configLocation>${project.basedir}/config/checkstyle/warnings.xml</configLocation>
+                            <configLocation>config/checkstyle/warnings.xml</configLocation>
                             <consoleOutput>true</consoleOutput>
                             <failOnViolation>false</failOnViolation>
                         </configuration>
@@ -177,7 +177,7 @@
                             <goal>check</goal>
                         </goals>
                         <configuration>
-                            <configLocation>${project.basedir}/config/checkstyle/errors.xml</configLocation>
+                            <configLocation>config/checkstyle/errors.xml</configLocation>
                             <consoleOutput>true</consoleOutput>
                             <failOnViolation>true</failOnViolation>
                         </configuration>
