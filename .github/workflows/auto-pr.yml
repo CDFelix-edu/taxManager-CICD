@@ -43,6 +43,7 @@ jobs:
           git commit --allow-empty -m "${USER_MSG:-Auto update from pipeline}"
           git push origin $BRANCH_NAME
           echo "NEW_BRANCH=$BRANCH_NAME" >> $GITHUB_ENV
+          echo "USER_MSG=$USER_MSG" >> $GITHUB_ENV
 
       - name: Create PR via CLI
         if: env.NEW_BRANCH != ''
@@ -50,7 +51,7 @@ jobs:
           GH_TOKEN: ${{ secrets.MY_PAT }}
         run: |
           gh pr create \
-            --title "Auto PR: Build #${{ github.run_number }} $USER_MSG" \
+            --title "${{ env.USER_MSG }} (Build #${{ github.run_number }})" \
             --body "Pipeline di verifica completata con successo." \
             --base main \
             --head ${{ env.NEW_BRANCH }}
