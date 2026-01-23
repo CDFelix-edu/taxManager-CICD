@@ -292,8 +292,8 @@ Dopo il merge su `main`:
 # 🧭 Branching model consigliato
 
 - `main` → stabile, protetto, solo merge automatici  
-- `branchDev` → branch permanente di sviluppo  
-- altri branch → opzionali per feature specifiche  
+- `branchDev` → branch permanente di sviluppo (beta)
+- altri branch → opzionali per feature specifiche  (alfa e test)
 
 ---
 
@@ -302,9 +302,3 @@ Dopo il merge su `main`:
 Per compilare localmente: **mvn clean verify**
 
 Per generare il JAR: **mvn clean package**
-
----
-
-# **se si vede questo allora funziona**
-
-# **MA SI DEVE VEDERE ANCHE QUESTO!!!   L&G, AUTO MERGE!**
