@@ -1,12 +1,17 @@
 name: CI Pipeline
 
 on:
-  pull_request:
-    branches: [ "main" ]
-
+  push:
+    branches-ignore:
+      - 'main'
+      
 jobs:
   build:
     runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+      pull-requests: write
 
     steps:
       - name: Checkout repository
@@ -20,4 +25,28 @@ jobs:
 
       - name: Build with Maven
         run: mvn -B clean verify
+
+      - name: Create Pull Request
+        # Se la build fallisce, i passaggi successivi vengono saltati automaticamente
+        id: cpr
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "auto: verificato e pronto per il merge"
+          title: "Auto PR: Merge branch ${{ github.ref_name }} into main"
+          body: "Pipeline completata con successo (Maven verify passed)."
+          branch: "auto-pr-${{ github.ref_name }}" # Crea un branch di appoggio per la PR
+          base: main
+
+      - name: Automerge
+        # Questo passaggio unisce la PR appena creata se tutto è verde
+        if: steps.cpr.outputs.pull-request-operation == 'created'
+        uses: pascalgn/automerge-action@v0.16.3
+        env:
+          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+          MERGE_LABELS: "" # Merge immediato senza bisogno di label
+          MERGE_METHOD: "merge"
+          MERGE_FORK: "false"
+          MERGE_RETRIES: "6"
+          MERGE_RETRY_SLEEP: "10000"
 
