@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ExternalExceptionHandler.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">taxManager</a> &gt; <a href="index.source.html" class="el_package">it.unimol.taxManager.exception</a> &gt; <span class="el_source">ExternalExceptionHandler.java</span></div><h1>ExternalExceptionHandler.java</h1><pre class="source lang-java linenums">package it.unimol.taxManager.exception;
+
+import feign.RetryableException;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+import javax.net.ssl.SSLHandshakeException;
+import java.net.ConnectException;
+import java.net.NoRouteToHostException;
+import java.net.SocketTimeoutException;
+import java.net.UnknownHostException;
+import java.util.HashMap;
+import java.util.Map;
+
+@RestControllerAdvice
+<span class="fc" id="L19">public class ExternalExceptionHandler {</span>
+
+    @ExceptionHandler(ExternalServiceException.class)
+    public ResponseEntity&lt;Map&lt;String, Object&gt;&gt; handleExternalError(ExternalServiceException ex) {
+<span class="nc" id="L23">        Map&lt;String, Object&gt; response = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L24">        response.put(&quot;status&quot;, &quot;error&quot;);</span>
+<span class="nc" id="L25">        response.put(&quot;messaggio&quot;, ex.getMessage());</span>
+<span class="nc" id="L26">        return ResponseEntity.status(ex.getStatus()).contentType(MediaType.APPLICATION_JSON).body(response);</span>
+    }
+
+    @ExceptionHandler(RetryableException.class)
+    public ResponseEntity&lt;Map&lt;String, Object&gt;&gt; handleFeignConnectionError(RetryableException ex) {
+<span class="nc" id="L31">        Map&lt;String, Object&gt; response = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L32">        response.put(&quot;status&quot;, &quot;error&quot;);</span>
+<span class="nc" id="L33">        Throwable cause = ex.getCause();</span>
+<span class="nc bnc" id="L34" title="All 2 branches missed.">        if (cause instanceof ConnectException) {</span>
+<span class="nc" id="L35">            response.put(&quot;messaggio&quot;, &quot;ConnectionRefused: Server secondario offline o porta chiusa&quot;);</span>
+<span class="nc bnc" id="L36" title="All 2 branches missed.">        } else if (cause instanceof SocketTimeoutException) {</span>
+<span class="nc" id="L37">            response.put(&quot;messaggio&quot;, &quot;SocketTimeout: il microservizio non ha risposto nei tempi previsti&quot;);</span>
+<span class="nc bnc" id="L38" title="All 2 branches missed.">        } else if (cause instanceof UnknownHostException) {</span>
+<span class="nc" id="L39">            response.put(&quot;messaggio&quot;, &quot;UnknownHost: nome host non risolto (DNS non trovato)&quot;);</span>
+<span class="nc bnc" id="L40" title="All 2 branches missed.">        } else if (cause instanceof NoRouteToHostException) {</span>
+<span class="nc" id="L41">            response.put(&quot;messaggio&quot;, &quot;NoRouteToHost: Rete irraggiungibile, errori di routing&quot;);</span>
+<span class="nc bnc" id="L42" title="All 2 branches missed.">        } else if (cause instanceof SSLHandshakeException) {</span>
+<span class="nc" id="L43">            response.put(&quot;messaggio&quot;, &quot;SSLHandShake: errore di Handshake SSL (certificati o protocollo)&quot;);</span>
+        } else {
+<span class="nc" id="L45">            response.put(&quot;messaggio&quot;, &quot;a causa di un problema risulta impossibile contattare il servizio richiesto. Dettagli: &quot; + ex.getMessage());</span>
+        }
+<span class="nc" id="L47">        return ResponseEntity.status(HttpStatus.BAD_GATEWAY).contentType(MediaType.APPLICATION_JSON).body(response);</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>
