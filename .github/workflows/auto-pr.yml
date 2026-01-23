@@ -23,7 +23,6 @@ jobs:
           base: main
           # Uso un nome branch che include lo SHA per evitare conflitti sovrapposti
           branch: auto-pr/${{ github.ref_name }}-${{ github.sha }}
-          push-tokens: true 
           title: "Auto PR from ${{ github.ref_name }}"
           body: |
             Pull request generata automaticamente dal branch `${{ github.ref_name }}`.
