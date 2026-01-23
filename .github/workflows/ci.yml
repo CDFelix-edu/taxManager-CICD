@@ -49,7 +49,7 @@ jobs:
           # Crea un branch unico per la PR
           BRANCH_NAME="auto-update-${{ github.run_id }}"
           git checkout -b $BRANCH_NAME
-          git commit -m "Auto: aggiornamento post-build e verifiche"
+          git commit --allow-empty -m "Trigger PR" #git commit -m "Auto: aggiornamento post-build e verifiche"
           git push origin $BRANCH_NAME
           
           # Esporta il nome del branch per i passi successivi
