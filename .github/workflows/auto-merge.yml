@@ -7,18 +7,18 @@ on:
       - completed
 
 jobs:
-  auto-merge:
+  enable-auto-merge:
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
 
+    permissions:
+      contents: write
+      pull-requests: write
+
     steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup GitHub CLI
-        uses: cli/cli@v2
+      - name: Enable auto-merge on PR
+        uses: peter-evans/enable-pull-request-automerge@v3
         with:
-          version: latest
-
-      - name: Enable auto-merge
-        run: |
-          gh pr merge ${{ github.event.workflow_run.head_branch }} --auto --squash
+          token: ${{ secrets.GITHUB_TOKEN }}
+          pull-request-number: ${{ github.event.workflow_run.pull_requests[0].number }}
+          merge-method: squash
