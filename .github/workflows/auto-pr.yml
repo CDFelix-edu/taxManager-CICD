@@ -44,7 +44,7 @@ jobs:
       - name: Create PR via CLI
         if: env.NEW_BRANCH != ''
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.MY_PAT }}
         run: |
           gh pr create \
             --title "Auto PR: Build #${{ github.run_number }}" \
