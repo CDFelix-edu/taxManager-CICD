@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>StudentStatus.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">taxManager</a> &gt; <a href="index.source.html" class="el_package">it.unimol.taxManager.util</a> &gt; <span class="el_source">StudentStatus.java</span></div><h1>StudentStatus.java</h1><pre class="source lang-java linenums">package it.unimol.taxManager.util;
+
+<span class="fc" id="L3">public enum StudentStatus {</span>
+<span class="fc" id="L4">    IMMATRICOLATO(&quot;Immatricolato&quot;),     //0: Solo immatricolato ma senza tasse da pagare (ancora non vengono generate</span>
+<span class="fc" id="L5">    ISCRITTO(&quot;Iscritto&quot;),               //1: Dal pagamento della prima rata senza tasse scadute</span>
+<span class="fc" id="L6">    NON_ISCRITTO(&quot;Non iscritto&quot;),       //2: Se ancora non ha pagato nemmeno ua rata</span>
+<span class="fc" id="L7">    CONGELATO(&quot;Congelato&quot;),             //3: Regolarmente iscritto ma con tasse scadute</span>
+<span class="fc" id="L8">    ATTIVO(&quot;Attivo&quot;),                   //4: Tutte le rate pagate</span>
+<span class="fc" id="L9">    COMPLETATO(&quot;Completato&quot;),           //5: Ha completato il percorso di studi</span>
+<span class="fc" id="L10">    FUORI_CORSO(&quot;Fuori corso&quot;),         //6: Non so nemmeno se mi serve</span>
+<span class="fc" id="L11">    CESSATO(&quot;Cessato&quot;);                 //7: Rinuncia agli studi</span>
+
+    private final String status;
+
+<span class="fc" id="L15">    StudentStatus(String status) {</span>
+<span class="fc" id="L16">        this.status = status;</span>
+<span class="fc" id="L17">    }</span>
+
+    public String getStatus() {
+<span class="nc" id="L20">        return status;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

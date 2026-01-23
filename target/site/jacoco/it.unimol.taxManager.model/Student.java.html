@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Student.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">taxManager</a> &gt; <a href="index.source.html" class="el_package">it.unimol.taxManager.model</a> &gt; <span class="el_source">Student.java</span></div><h1>Student.java</h1><pre class="source lang-java linenums">package it.unimol.taxManager.model;
+
+import it.unimol.taxManager.util.StudentStatus;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+
+@Entity
+public class Student {
+    @Id
+    private String id; // Matricola dello studente
+    /*FIXME: meglio richiedere le informazioni al microservizio di mauro piuttosto che salvarle nel DB
+    private String username;
+    private String email;
+    private String nome;
+    private String cognome;
+    TODO: troppo tempo per implementarlo, ma sarebbe bello poter gestire anche il tipo di studente (es. part-time, full-time)
+    private String StudentType;*/
+    private StudentStatus stato;
+
+    private double ISEE;
+
+<span class="nc" id="L22">    public Student() {</span>
+<span class="nc" id="L23">    }</span>
+
+<span class="fc" id="L25">    public Student(String id/*, String username, String email, String nome, String cognome*/) {</span>
+<span class="fc" id="L26">        this.id = id;</span>
+
+<span class="fc" id="L28">        this.stato = StudentStatus.IMMATRICOLATO;</span>
+<span class="fc" id="L29">        this.ISEE = 36000;</span>
+<span class="fc" id="L30">    }</span>
+
+    public void setISEE(double ISEE) {
+<span class="fc" id="L33">        this.ISEE = ISEE;</span>
+<span class="fc" id="L34">    }</span>
+
+    public double getISEE() {
+<span class="fc" id="L37">        return ISEE;</span>
+    }
+
+    public String getId() {
+<span class="nc" id="L41">        return id;</span>
+    }
+
+    public void setStato(StudentStatus status) {
+<span class="nc" id="L45">        this.stato = status;</span>
+<span class="nc" id="L46">    }</span>
+
+    public StudentStatus getStato() {
+<span class="nc" id="L49">        return stato;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>
