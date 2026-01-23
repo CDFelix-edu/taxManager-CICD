@@ -27,25 +27,71 @@ jobs:
           cache: 'maven' # Velocizza le build successive
 
       - name: Build and Verify with Maven
-        # Qui eseguiamo tutto: Compilazione, Test, Spotbugs, Jacoco
         run: mvn -B clean verify
 
-      - name: Create Pull Request
-        id: cpr
-        uses: peter-evans/create-pull-request@v6
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          commit-message: "auto: verificato e pronto"
-          title: "PR Automatica da ${{ github.ref_name }}"
-          body: "La pipeline è passata con successo. Merge automatico in corso..."
-          branch: "auto-pr-temp-${{ github.ref_name }}"
-          base: main
-          delete-branch: true # Pulisce il branch temporaneo dopo il merge
+      - name: Commit and Push changes
+        run: |
+          # Configura l'utente
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          
+          # Forza l'aggiunta di tutto (anche se generato)
+          git add .
+          
+          # Verifica se c'è effettivamente qualcosa da committare
+          if git diff --staged --quiet; then
+            echo "Nessuna modifica reale rilevata. Salto la PR."
+            # exit 0
+          fi
+          
+          # Crea un branch unico per la PR
+          BRANCH_NAME="auto-update-${{ github.run_id }}"
+          git checkout -b $BRANCH_NAME
+          git commit --allow-empty -m "Trigger PR" #git commit -m "Auto: aggiornamento post-build e verifiche"
+          git push origin $BRANCH_NAME
+          
+          # Esporta il nome del branch per i passi successivi
+          echo "NEW_BRANCH=$BRANCH_NAME" >> $GITHUB_ENV
 
-      - name: Automerge
-        if: steps.cpr.outputs.pull-request-operation == 'created'
-        uses: pascalgn/automerge-action@v0.16.3
+      - name: Create and Merge PR via GitHub CLI
+        if: env.NEW_BRANCH != ''
         env:
-          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
-          MERGE_METHOD: "merge"
-          MERGE_LABELS: ""
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # 1. Crea la Pull Request
+          PR_URL=$(gh pr create \
+            --title "Auto PR: Verifiche superate (${{ github.ref_name }})" \
+            --body "Questa PR è stata generata automaticamente dalla pipeline CI." \
+            --base main \
+            --head ${{ env.NEW_BRANCH }})
+          
+          echo "PR creata: $PR_URL"
+          
+          # 2. Fai il Merge immediato
+          gh pr merge $PR_URL --merge --delete-branch
+          
+          
+          
+#          - name: Build and Verify with Maven
+#        # Qui eseguiamo tutto: Compilazione, Test, Spotbugs, Jacoco
+#        run: mvn -B clean verify
+#
+#      - name: Create Pull Request
+#        id: cpr
+#        uses: peter-evans/create-pull-request@v6
+#        with:
+#          token: ${{ secrets.GITHUB_TOKEN }}
+#          commit-message: "auto: verificato e pronto"
+#          title: "PR Automatica da ${{ github.ref_name }}"
+#          body: "La pipeline è passata con successo. Merge automatico in corso..."
+#          branch: "auto-pr-temp-${{ github.ref_name }}"
+#          base: main
+#          delete-branch: true # Pulisce il branch temporaneo dopo il merge
+#
+#      - name: Automerge
+#        if: steps.cpr.outputs.pull-request-operation == 'created'
+#        uses: pascalgn/automerge-action@v0.16.3
+#        env:
+#          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+#          MERGE_METHOD: "merge"
+#          MERGE_LABELS: ""
