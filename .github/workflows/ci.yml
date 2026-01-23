@@ -42,7 +42,7 @@ jobs:
           # Verifica se c'è effettivamente qualcosa da committare
           if git diff --staged --quiet; then
             echo "Nessuna modifica reale rilevata. Salto la PR."
-            exit 0
+          #  exit 0
           fi
           
           # Crea un branch unico per la PR
