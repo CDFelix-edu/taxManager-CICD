@@ -1,0 +1,4 @@
+-------------------------------------------------------------------------------
+Test set: it.unimol.taxManager.TaxManagerApplicationTests
+-------------------------------------------------------------------------------
+Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 9.409 s -- in it.unimol.taxManager.TaxManagerApplicationTests

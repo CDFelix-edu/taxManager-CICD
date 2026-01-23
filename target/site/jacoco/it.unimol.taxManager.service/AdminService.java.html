@@ -1,0 +1,256 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AdminService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">taxManager</a> &gt; <a href="index.source.html" class="el_package">it.unimol.taxManager.service</a> &gt; <span class="el_source">AdminService.java</span></div><h1>AdminService.java</h1><pre class="source lang-java linenums">package it.unimol.taxManager.service;
+
+import it.unimol.taxManager.client.PagoPA.PagoPAClient;
+import it.unimol.taxManager.client.gestioneUtenti.GestioneUtentiClient;
+import it.unimol.taxManager.client.reportAndAnalysisManager.ReportAndAnalysisClient;
+import it.unimol.taxManager.exception.JwtTokenException;
+import it.unimol.taxManager.model.Brackets;
+import it.unimol.taxManager.model.Student;
+import it.unimol.taxManager.model.Tax;
+import it.unimol.taxManager.repository.SogliaRepository;
+import it.unimol.taxManager.repository.StudentRepository;
+import it.unimol.taxManager.repository.TaxRepository;
+import it.unimol.taxManager.util.JWTToken;
+import it.unimol.taxManager.util.StudentStatus;
+import it.unimol.taxManager.util.TaxStatus;
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
+
+import java.time.LocalDate;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+
+//DTO
+import it.unimol.taxManager.dto.BracketsDTO;
+import it.unimol.taxManager.dto.IseeUpdateDTO;
+import it.unimol.taxManager.dto.StudentDTO;
+import it.unimol.taxManager.dto.UpdateDTO;
+import it.unimol.taxManager.dto.StudentDetailsDTO;
+import it.unimol.taxManager.dto.UpdateBracketsDTO;
+import it.unimol.taxManager.dto.PagoPATaxDTO;
+
+@Service
+public class AdminService {
+
+    private final JWTToken tokenManager;
+    private final GestioneUtentiClient gestioneUtentiClient;
+    private final SogliaRepository sogliaRepository;
+    private final StudentRepository studentRepository;
+    private final TaxRepository taxRepository;
+    private final PagoPAClient pagoPAClient;
+    private final ReportAndAnalysisClient reportAndAnalysisClient;
+
+<span class="fc" id="L46">    public AdminService(GestioneUtentiClient gestioneUtentiClient, SogliaRepository sogliaRepository, StudentRepository studentRepository, JWTToken tokenManager, TaxRepository taxRepository, PagoPAClient pagoPAClient, ReportAndAnalysisClient reportAndAnalysisClient) {</span>
+<span class="fc" id="L47">        this.gestioneUtentiClient = gestioneUtentiClient;</span>
+<span class="fc" id="L48">        this.sogliaRepository = sogliaRepository;</span>
+<span class="fc" id="L49">        this.studentRepository = studentRepository;</span>
+<span class="fc" id="L50">        this.tokenManager = tokenManager;</span>
+<span class="fc" id="L51">        this.taxRepository = taxRepository;</span>
+<span class="fc" id="L52">        this.pagoPAClient = pagoPAClient;</span>
+<span class="fc" id="L53">        this.reportAndAnalysisClient = reportAndAnalysisClient;</span>
+<span class="fc" id="L54">    }</span>
+
+    public UpdateDTO updateDatabase(String token) {
+<span class="fc" id="L57">        validateToken(token);</span>
+
+<span class="fc" id="L59">        int nuoviStudenti = 0;</span>
+<span class="fc" id="L60">        List&lt;StudentDTO&gt; studentiAggiornati = gestioneUtentiClient.getStudentList(token);</span>
+<span class="fc bfc" id="L61" title="All 2 branches covered.">        for (StudentDTO dto : studentiAggiornati) {</span>
+<span class="pc bpc" id="L62" title="1 of 2 branches missed.">            if (&quot;student&quot;.equals(dto.nomeRuolo())) {</span>
+<span class="fc" id="L63">                Optional&lt;Student&gt; existingStudente = studentRepository.findById(dto.id());</span>
+<span class="fc bfc" id="L64" title="All 2 branches covered.">                if (existingStudente.isEmpty()) {</span>
+<span class="fc" id="L65">                    Student nuovoStudente = new Student(dto.id()/*, dto.username(), dto.email(), dto.nome(), dto.cognome()*/);</span>
+<span class="fc" id="L66">                    studentRepository.save(nuovoStudente);</span>
+<span class="fc" id="L67">                    nuoviStudenti++;</span>
+                }
+            }
+<span class="fc" id="L70">        }</span>
+<span class="fc" id="L71">        return new UpdateDTO(nuoviStudenti);</span>
+    }
+
+
+    public boolean updateStudentISEE(String token, String studentId, IseeUpdateDTO studentISEE) {
+<span class="fc" id="L76">        validateToken(token);</span>
+
+<span class="fc bfc" id="L78" title="All 2 branches covered.">        if (studentISEE.isee() &lt; 0) {</span>
+<span class="fc" id="L79">            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, &quot;Il valore ISEE non può essere negativo&quot;);</span>
+        }
+
+        // Verifica se lo studente esiste nel database
+<span class="fc" id="L83">        Student student = studentRepository.findById(studentId).orElseThrow(() -&gt; new ResponseStatusException(HttpStatus.NOT_FOUND, &quot;Studente non trovato&quot;));</span>
+
+        // Se il valore ISEE è già uguale a quello fornito, non fare nulla
+<span class="fc bfc" id="L86" title="All 2 branches covered.">        if (Math.abs(student.getISEE() - studentISEE.isee()) &lt; 0.0001) {</span>
+<span class="fc" id="L87">            return false;</span>
+        }
+
+        // Aggiornamento del valore ISEE
+<span class="fc" id="L91">        student.setISEE(studentISEE.isee());</span>
+<span class="fc" id="L92">        studentRepository.save(student); // Salva le modifiche nel database</span>
+
+<span class="fc" id="L94">        return true;</span>
+    }
+
+
+    public boolean insertSoglieIsee(String token, BracketsDTO soglie) {
+<span class="fc" id="L99">        validateToken(token);</span>
+
+<span class="pc bpc" id="L101" title="1 of 4 branches missed.">        if ((soglie.anno() &lt; 1900 || soglie.anno() &gt; 2500)) {</span>
+<span class="fc" id="L102">            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, &quot;Anno non conforme.&quot;);</span>
+        }
+
+<span class="fc bfc" id="L105" title="All 2 branches covered.">        if (sogliaRepository.existsByAnno(soglie.anno())) {</span>
+<span class="fc" id="L106">            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, &quot;Le soglie per l'anno &quot; + soglie.anno() + &quot; sono già state definite.&quot;);</span>
+        }
+
+<span class="fc" id="L109">        checkSoglie(soglie);</span>
+
+<span class="fc" id="L111">        Brackets soglia = new Brackets(soglie.anno(), soglie.importoBase(), soglie.soglia1(), soglie.sconto1(), soglie.soglia2(), soglie.sconto2(), soglie.soglia3(), soglie.sconto3(), soglie.soglia4(), soglie.sconto4());</span>
+<span class="fc" id="L112">        sogliaRepository.save(soglia);</span>
+<span class="fc" id="L113">        return true;</span>
+    }
+
+    public boolean updateSoglieIsee(String token, int anno, UpdateBracketsDTO updatedSoglieDTO) {
+<span class="fc" id="L117">        validateToken(token);</span>
+
+<span class="pc" id="L119">        Brackets sogliaToMerge = sogliaRepository.findByAnno(anno).orElseThrow(() -&gt; new ResponseStatusException(HttpStatus.NOT_FOUND, &quot;L'anno indicato non è presente nel DataBase&quot;));</span>
+
+<span class="pc bpc" id="L121" title="7 of 18 branches missed.">        if (updatedSoglieDTO.importoBase() == null &amp;&amp; updatedSoglieDTO.soglia1() == null &amp;&amp; updatedSoglieDTO.sconto1() == null &amp;&amp; updatedSoglieDTO.soglia2() == null &amp;&amp; updatedSoglieDTO.sconto2() == null &amp;&amp; updatedSoglieDTO.soglia3() == null &amp;&amp; updatedSoglieDTO.sconto3() == null &amp;&amp; updatedSoglieDTO.soglia4() == null &amp;&amp; updatedSoglieDTO.sconto4() == null) {</span>
+<span class="fc" id="L122">            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, &quot;Nessun valore da aggiornare fornito.&quot;);</span>
+        }
+
+<span class="fc bfc" id="L125" title="All 18 branches covered.">        BracketsDTO mergedSoglie = new BracketsDTO(sogliaToMerge.getAnno(), updatedSoglieDTO.importoBase() != null ? updatedSoglieDTO.importoBase() : sogliaToMerge.getImportoBase(), updatedSoglieDTO.soglia1() != null ? updatedSoglieDTO.soglia1() : sogliaToMerge.getSoglia1(), updatedSoglieDTO.sconto1() != null ? updatedSoglieDTO.sconto1() : sogliaToMerge.getSconto1(), updatedSoglieDTO.soglia2() != null ? updatedSoglieDTO.soglia2() : sogliaToMerge.getSoglia2(), updatedSoglieDTO.sconto2() != null ? updatedSoglieDTO.sconto2() : sogliaToMerge.getSconto2(), updatedSoglieDTO.soglia3() != null ? updatedSoglieDTO.soglia3() : sogliaToMerge.getSoglia3(), updatedSoglieDTO.sconto3() != null ? updatedSoglieDTO.sconto3() : sogliaToMerge.getSconto3(), updatedSoglieDTO.soglia4() != null ? updatedSoglieDTO.soglia4() : sogliaToMerge.getSoglia4(), updatedSoglieDTO.sconto4() != null ? updatedSoglieDTO.sconto4() : sogliaToMerge.getSconto4());</span>
+
+<span class="fc bfc" id="L127" title="All 2 branches covered.">        if (mergedSoglie.equals(new BracketsDTO(sogliaToMerge.getAnno(), sogliaToMerge.getImportoBase(), sogliaToMerge.getSoglia1(), sogliaToMerge.getSconto1(), sogliaToMerge.getSoglia2(), sogliaToMerge.getSconto2(), sogliaToMerge.getSoglia3(), sogliaToMerge.getSconto3(), sogliaToMerge.getSoglia4(), sogliaToMerge.getSconto4()))) {</span>
+<span class="fc" id="L128">            return false;</span>
+        }
+
+<span class="fc" id="L131">        checkSoglie(mergedSoglie);</span>
+
+<span class="fc" id="L133">        Brackets sogliaToSave = new Brackets(mergedSoglie.anno(), mergedSoglie.importoBase(), mergedSoglie.soglia1(), mergedSoglie.sconto1(), mergedSoglie.soglia2(), mergedSoglie.sconto2(), mergedSoglie.soglia3(), mergedSoglie.sconto3(), mergedSoglie.soglia4(), mergedSoglie.sconto4());</span>
+<span class="fc" id="L134">        sogliaRepository.save(sogliaToSave);</span>
+<span class="fc" id="L135">        return true;</span>
+    }
+
+    public Map&lt;String, Object&gt; generatePaymentNotices(String token, int anno) {
+<span class="nc" id="L139">        int maxNumRate = 5; // Numero massimo di rate da calcolare per ogni studente</span>
+<span class="nc" id="L140">        validateToken(token);</span>
+
+<span class="nc" id="L142">        Brackets soglia = sogliaRepository.findByAnno(anno).orElseThrow(() -&gt; new ResponseStatusException(HttpStatus.NOT_FOUND, &quot;Soglie per l'anno &quot; + anno + &quot; non trovate.&quot;));</span>
+<span class="nc" id="L143">        List&lt;Student&gt; studenti = studentRepository.findAll();</span>
+
+<span class="nc bnc" id="L145" title="All 2 branches missed.">        if (studenti.isEmpty()) {</span>
+<span class="nc" id="L146">            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, &quot;Nessuno studente trovato nel database.&quot;);</span>
+        }
+
+        //Utile per prevedere che tutti devono pagare un minimo di tassa (iscrizione e cosa regionale)
+<span class="nc" id="L150">        double importoMinimo = 0;</span>
+<span class="nc" id="L151">        double minRata = 25;</span>
+
+<span class="nc bnc" id="L153" title="All 2 branches missed.">        for (Student studente : studenti) {</span>
+            //TODO: controllare se tramite chiamata al microservizio di Analisi e Reportistica si può ottenere lo stato carriera dello studente (sapere se si è ritirato)
+<span class="nc bnc" id="L155" title="All 4 branches missed.">            if (studente.getStato() != StudentStatus.CESSATO &amp;&amp; studente.getStato() != StudentStatus.COMPLETATO) {</span>
+<span class="nc" id="L156">                System.out.println(&quot;Calcolo tasse per lo studente: &quot; + studente.getId());</span>
+<span class="nc bnc" id="L157" title="All 2 branches missed.">                if (reportAndAnalysisClient.getStudentProgress(token, studente.getId()).progressPercentage() == 100) {</span>
+<span class="nc" id="L158">                    studente.setStato(StudentStatus.COMPLETATO);</span>
+<span class="nc" id="L159">                    studentRepository.save(studente);</span>
+                } else {
+<span class="nc" id="L161">                    double importoStudente = getImportoStudente(studente, soglia, importoMinimo);</span>
+<span class="nc bnc" id="L162" title="All 4 branches missed.">                    if (importoStudente &gt; 0.00 &amp;&amp; taxRepository.findTaxesByStudentId(studente.getId()).stream().noneMatch(tax -&gt; tax.getExpirationDate().isAfter(LocalDate.of(LocalDate.now().getYear(), 6, 1)))) {</span>
+                        // Calcolo delle rate
+<span class="nc" id="L164">                        int numeroRate = maxNumRate;</span>
+<span class="nc bnc" id="L165" title="All 4 branches missed.">                        while (importoStudente / numeroRate &lt; minRata &amp;&amp; numeroRate &gt; 1) {</span>
+<span class="nc" id="L166">                            numeroRate--;</span>
+                        }
+<span class="nc" id="L168">                        double importoPerRata = importoStudente / numeroRate;</span>
+
+                        //Chiamata al microservizio di gestione utenti e ruoli per ritornare nome e cognome
+<span class="nc" id="L171">                        StudentDetailsDTO studentDetails = gestioneUtentiClient.getStudentById(token, studente.getId());</span>
+
+<span class="nc bnc" id="L173" title="All 2 branches missed.">                        for (int i = 0; i &lt; numeroRate; i++) {</span>
+<span class="nc" id="L174">                            PagoPATaxDTO pagoPaDetails = new PagoPATaxDTO(studentDetails.id(), studentDetails.surname(), studentDetails.name(), &quot;Università degli studi del Molise&quot;, importoPerRata, getExpiration(i + 1, anno));</span>
+                            //TODO: migliorare la gestione del token di autenticazione se possibile
+<span class="nc" id="L176">                            String avvisoPagoPa = pagoPAClient.registerTax(&quot;Bearer codiceAutenticazioneConPagoPA&quot;, pagoPaDetails);</span>
+<span class="nc" id="L177">                            taxRepository.save(new Tax(studente, importoPerRata, TaxStatus.PENDING, getExpiration(i + 1, anno), avvisoPagoPa));</span>
+                        }
+<span class="nc" id="L179">                        studente.setStato(StudentStatus.NON_ISCRITTO);</span>
+<span class="nc" id="L180">                        studentRepository.save(studente);</span>
+<span class="nc" id="L181">                    } else {</span>
+<span class="nc" id="L182">                        studente.setStato(StudentStatus.ATTIVO);</span>
+<span class="nc" id="L183">                        studentRepository.save(studente);</span>
+                    }
+                }
+            }
+<span class="nc" id="L187">        }</span>
+
+<span class="nc" id="L189">        return Map.of(&quot;status&quot;, &quot;success&quot;, &quot;messaggio&quot;, &quot;Tasse calcolate e avvisi di pagamento generati correttamente.&quot;);</span>
+    }
+
+    private static LocalDate getExpiration(int numRata, int anno) {
+<span class="nc bnc" id="L193" title="All 5 branches missed.">        return switch (numRata) {</span>
+<span class="nc" id="L194">            case 1 -&gt; LocalDate.of(anno, 9, 30);</span>
+<span class="nc" id="L195">            case 2 -&gt; LocalDate.of(anno, 12, 10);</span>
+<span class="nc" id="L196">            case 3 -&gt; LocalDate.of(anno + 1, 1, 31);</span>
+<span class="nc" id="L197">            case 4 -&gt; LocalDate.of(anno + 1, 3, 31);</span>
+<span class="nc" id="L198">            default -&gt; LocalDate.of(anno + 1, 5, 30);</span>
+        };
+    }
+
+    private static double getImportoStudente(Student studente, Brackets soglia, double importoMinimo) {
+<span class="nc" id="L203">        double importoStudente = 0.00;</span>
+<span class="nc bnc" id="L204" title="All 2 branches missed.">        if (studente.getISEE() &lt; soglia.getSoglia1()) {</span>
+<span class="nc" id="L205">            importoStudente = soglia.getImportoBase() * (1 - (double) soglia.getSconto1() / 100) + importoMinimo;</span>
+<span class="nc bnc" id="L206" title="All 4 branches missed.">        } else if (studente.getISEE() &gt;= soglia.getSoglia1() &amp;&amp; studente.getISEE() &lt; soglia.getSoglia2()) {</span>
+<span class="nc" id="L207">            importoStudente = soglia.getImportoBase() * (1 - (double) soglia.getSconto2() / 100) + importoMinimo;</span>
+<span class="nc bnc" id="L208" title="All 4 branches missed.">        } else if (studente.getISEE() &gt;= soglia.getSoglia2() &amp;&amp; studente.getISEE() &lt; soglia.getSoglia3()) {</span>
+<span class="nc" id="L209">            importoStudente = soglia.getImportoBase() * (1 - (double) soglia.getSconto3() / 100) + importoMinimo;</span>
+<span class="nc bnc" id="L210" title="All 4 branches missed.">        } else if (studente.getISEE() &gt;= soglia.getSoglia3() &amp;&amp; studente.getISEE() &lt; soglia.getSoglia4()) {</span>
+<span class="nc" id="L211">            importoStudente = soglia.getImportoBase() * (1 - (double) soglia.getSconto4() / 100) + importoMinimo;</span>
+<span class="nc bnc" id="L212" title="All 2 branches missed.">        } else if (studente.getISEE() &gt;= soglia.getSoglia4()) {</span>
+<span class="nc" id="L213">            importoStudente = soglia.getImportoBase() + importoMinimo;</span>
+        }
+<span class="nc" id="L215">        return importoStudente;</span>
+    }
+
+    private void checkSoglie(BracketsDTO sogliaToCheck) {
+<span class="pc bpc" id="L219" title="6 of 18 branches missed.">        if (sogliaToCheck.importoBase() &lt; 0 || sogliaToCheck.soglia1() &lt; 0 || sogliaToCheck.sconto1() &lt; 0 || sogliaToCheck.soglia2() &lt; 0 || sogliaToCheck.sconto2() &lt; 0 || sogliaToCheck.soglia3() &lt; 0 || sogliaToCheck.sconto3() &lt; 0 || sogliaToCheck.soglia4() &lt; 0 || sogliaToCheck.sconto4() &lt; 0) {</span>
+<span class="fc" id="L220">            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, &quot;I valori delle soglie e degli sconti devono essere positivi.&quot;);</span>
+        }
+
+<span class="pc bpc" id="L223" title="4 of 8 branches missed.">        if (sogliaToCheck.sconto1() &gt; 100 || sogliaToCheck.sconto2() &gt; 100 || sogliaToCheck.sconto3() &gt; 100 || sogliaToCheck.sconto4() &gt; 100) {</span>
+<span class="nc" id="L224">            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, &quot;Impossibile applicare una riduzione delle tasse superiore al 100%.&quot;);</span>
+        }
+
+<span class="pc bpc" id="L227" title="1 of 6 branches missed.">        if (sogliaToCheck.soglia1() &gt; sogliaToCheck.soglia2() || sogliaToCheck.soglia2() &gt; sogliaToCheck.soglia3() || sogliaToCheck.soglia3() &gt; sogliaToCheck.soglia4()) {</span>
+<span class="fc" id="L228">            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, &quot;Errore di ordinamento delle soglie: una fascia successiva non può essere minore della precedente&quot;);</span>
+        }
+
+<span class="pc bpc" id="L231" title="2 of 6 branches missed.">        if (sogliaToCheck.sconto1() &lt; sogliaToCheck.sconto2() || sogliaToCheck.sconto2() &lt; sogliaToCheck.sconto3() || sogliaToCheck.sconto3() &lt; sogliaToCheck.sconto4()) {</span>
+<span class="fc" id="L232">            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, &quot;Errore di ordinamento degli sconti: una fascia successiva non può avere uno sconto maggiore della precedente&quot;);</span>
+        }
+<span class="fc" id="L234">    }</span>
+
+
+    //Validazione Token
+    private void validateToken(String token) {
+<span class="fc" id="L239">        token = token.replace(&quot;Bearer &quot;, &quot;&quot;);</span>
+<span class="fc bfc" id="L240" title="All 2 branches covered.">        if (!tokenManager.isTokenValid(token)) {</span>
+<span class="fc" id="L241">            throw new JwtTokenException(&quot;Token scaduto o non valido.&quot;, JwtTokenException.Reason.INVALID);</span>
+        }
+<span class="pc bpc" id="L243" title="3 of 4 branches missed.">        if (!Objects.equals(tokenManager.extractRole(token), &quot;admin&quot;) &amp;&amp; !Objects.equals(tokenManager.extractRole(token), &quot;sadmin&quot;)) {</span>
+<span class="nc" id="L244">            throw new JwtTokenException(&quot;L'utente non ha i permessi sufficienti.&quot;, JwtTokenException.Reason.UNAUTHORIZED_ROLE);</span>
+        }
+<span class="fc" id="L246">    }</span>
+     /*
+    private Date getExpirationDate(int anno, int mese, int giorno) {
+        Calendar calendar = Calendar.getInstance();
+        calendar.set(anno, mese, giorno, 0, 0, 0);
+        calendar.set(Calendar.MILLISECOND, 0);
+        return calendar.getTime();
+    }*/
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>
