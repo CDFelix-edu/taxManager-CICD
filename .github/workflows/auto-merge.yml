@@ -8,7 +8,6 @@ on:
 
 jobs:
   merge-pr:
-    # Esegui solo se la build è passata
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     permissions:
@@ -23,13 +22,19 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # Dobbiamo trovare il numero della PR associata all'ultimo commit del workflow che è appena finito
-          PR_NUMBER=$(gh pr list --head "auto-update-${{ github.event.workflow_run.run_number }}" --format json --jq '.[0].number')
+          # Cerchiamo la PR specifica per questo run_number usando la sintassi --json
+          PR_NUMBER=$(gh pr list --head "auto-update-${{ github.event.workflow_run.run_number }}" --json number --jq '.[0].number')
           
-          # Se per qualche motivo il branch ha un nome diverso, usiamo una ricerca più generica:
-          if [ -z "$PR_NUMBER" ]; then
-            PR_NUMBER=$(gh pr list --base main --format json --jq '.[0].number')
+          # Se non la troviamo, cerchiamo la PR più recente aperta verso il main
+          if [ "$PR_NUMBER" == "null" ] || [ -z "$PR_NUMBER" ]; then
+            echo "PR specifica non trovata, cerco la PR aperta più recente..."
+            PR_NUMBER=$(gh pr list --base main --limit 1 --json number --jq '.[0].number')
           fi
 
-          echo "Tento il merge della PR numero: $PR_NUMBER"
-          gh pr merge $PR_NUMBER --merge --admin --delete-branch
+          # Eseguiamo il merge solo se abbiamo trovato un numero valido
+          if [ "$PR_NUMBER" != "null" ] && [ -n "$PR_NUMBER" ]; then
+            echo "Tento il merge della PR numero: $PR_NUMBER"
+            gh pr merge "$PR_NUMBER" --merge --admin --delete-branch
+          else
+            echo "Nessuna PR aperta trovata. Salto il merge."
+          fi
