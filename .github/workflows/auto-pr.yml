@@ -1,0 +1,32 @@
+name: Auto Create Pull Request
+
+on:
+  push:
+    branches-ignore:
+      - main
+
+jobs:
+  auto-create-pr:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Create PR from temporary branch
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          base: main
+          # Uso un nome branch che include lo SHA per evitare conflitti sovrapposti
+          branch: auto-pr/${{ github.ref_name }}-${{ github.sha }}
+          push-tokens: true 
+          title: "Auto PR from ${{ github.ref_name }}"
+          body: |
+            Pull request generata automaticamente dal branch `${{ github.ref_name }}`.
+            La pipeline CI verificherà la qualità del codice prima del merge.
+          delete-branch: true
+          draft: false
