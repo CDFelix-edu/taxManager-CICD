@@ -15,13 +15,19 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          # SCARICA TUTTA LA STORIA. Senza questo, Git spesso non vede le differenze
+          fetch-depth: 0 
 
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v6
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           base: main
-          branch: auto-pr/dev-branch
-          title: "Fix: Automated PR"
-          body: "Risoluzione problemi di automazione e permessi."
+          # Usa un nome di branch PR statico per evitare di creare mille branch orfani
+          branch: auto-pr-sync
+          title: "Auto PR from dev-branch"
+          body: "Pull request generata automaticamente. Verificata divergenza reale."
+          # FORZA la creazione anche se l'azione è incerta (commit vuoti esclusi)
+          commit-message: "Automated sync commit"
           delete-branch: true
