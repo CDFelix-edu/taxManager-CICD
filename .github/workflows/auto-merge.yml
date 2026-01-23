@@ -22,7 +22,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # Cerchiamo la PR specifica per questo run_number usando la sintassi --json
+          # Cerchiamo la PR specifica per questo run_number
           PR_NUMBER=$(gh pr list --head "auto-update-${{ github.event.workflow_run.run_number }}" --json number --jq '.[0].number')
           
           # Se non la troviamo, cerchiamo la PR più recente aperta verso il main
