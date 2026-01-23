@@ -16,8 +16,9 @@ import java.util.List;
 
 @Service
 public class TaxService {
-    TaxRepository taxRepository;
-    StudentRepository studentRepository;
+
+    private final TaxRepository taxRepository;
+    private final StudentRepository studentRepository;
 
     public TaxService(TaxRepository taxRepository, StudentRepository studentRepository) {
         this.taxRepository = taxRepository;
@@ -25,28 +26,37 @@ public class TaxService {
     }
 
     public void registerPagoPaTax(String authToken, PagoPaDetailsDTO pagoPaDetailsDTO) {
-        authToken = authToken.replace("Bearer ", "");
-        if (!authToken.equals("codiceAutenticazioneConPagoPA")) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Dati forniti non validi.");
-        }
+
+        validateAuthToken(authToken);
 
         Tax tax = taxRepository.findByPagoPaNoticeCode(pagoPaDetailsDTO.pagoPaNoticeCode());
-        if (tax == null) {
+        if (tax == null || tax.getStatus() == null) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Tassa non trovata.");
         }
-        if (tax.getStatus() == null) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Tassa non trovata.");
-        }
-        tax.setStatus(pagoPaDetailsDTO.status());
-        if (tax.setPaymentDate(pagoPaDetailsDTO.paymentDate())) {
-            tax.setStatus(TaxStatus.PAID);
-            taxRepository.save(tax);
-        } else {
+
+        // Aggiorna stato e data pagamento
+        if (!tax.setPaymentDate(pagoPaDetailsDTO.paymentDate())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Data di pagamento non valida.");
         }
 
-        Student student = studentRepository.findById(tax.getStudentId()).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Studente non presente nel sistema"));
+        tax.setStatus(TaxStatus.PAID);
+        taxRepository.save(tax);
 
+        Student student = studentRepository.findById(tax.getStudentId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Studente non presente nel sistema"));
+
+        updateStudentStatus(student);
+        studentRepository.save(student);
+    }
+
+    private void validateAuthToken(String authToken) {
+        String cleaned = authToken.replace("Bearer ", "");
+        if (!"codiceAutenticazioneConPagoPA".equals(cleaned)) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Dati forniti non validi.");
+        }
+    }
+
+    private void updateStudentStatus(Student student) {
         if (haveExpiredTaxes(student)) {
             student.setStato(StudentStatus.CONGELATO);
         } else if (haveAllPaidTaxes(student)) {
@@ -54,39 +64,29 @@ public class TaxService {
         } else {
             student.setStato(StudentStatus.ISCRITTO);
         }
-        student.setStato(StudentStatus.ISCRITTO);
-        studentRepository.save(student);
-
     }
 
     private boolean haveExpiredTaxes(Student student) {
         List<Tax> taxes = taxRepository.findTaxesByStudentId(student.getId());
-        if (taxes.isEmpty()) {
-            return false;
-        }
-        boolean expiredTaxesFound = false;
+        boolean expiredFound = false;
+
         for (Tax tax : taxes) {
-            if (tax.getStatus() == TaxStatus.UNPAID || (tax.getExpirationDate().isBefore(LocalDate.now()) && tax.getStatus() == TaxStatus.PENDING)) {
+            boolean isExpiredPending = tax.getStatus() == TaxStatus.PENDING &&
+                    tax.getExpirationDate().isBefore(LocalDate.now());
+
+            if (tax.getStatus() == TaxStatus.UNPAID || isExpiredPending) {
                 if (tax.getStatus() != TaxStatus.UNPAID) {
                     tax.setStatus(TaxStatus.UNPAID);
                     taxRepository.save(tax);
                 }
-                expiredTaxesFound = true;
+                expiredFound = true;
             }
         }
-        return expiredTaxesFound;
+        return expiredFound;
     }
 
     private boolean haveAllPaidTaxes(Student student) {
         List<Tax> taxes = taxRepository.findTaxesByStudentId(student.getId());
-        if (taxes.isEmpty()) {
-            return true;
-        }
-        for (Tax tax : taxes) {
-            if (tax.getStatus() != TaxStatus.PAID) {
-                return false;
-            }
-        }
-        return true;
+        return taxes.isEmpty() || taxes.stream().allMatch(t -> t.getStatus() == TaxStatus.PAID);
     }
 }
