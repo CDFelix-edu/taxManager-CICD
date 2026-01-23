@@ -300,6 +300,6 @@ Dopo il merge su `main`:
 
 # 🛠️ Build locale
 
-Per compilare localmente: **mvn clean verify**
+Per compilare localmente: **`mvn clean verify`**
 
 Per generare il JAR: **mvn clean package**
