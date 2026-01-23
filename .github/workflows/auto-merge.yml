@@ -20,7 +20,7 @@ jobs:
 
       - name: Merge PR via CLI
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.MY_PAT }}
         run: |
           # 1. Cerchiamo qualsiasi PR aperta che punta al main
           # Prendiamo la più recente per sicurezza
