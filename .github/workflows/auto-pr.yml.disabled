@@ -2,8 +2,9 @@ name: Auto Create Pull Request
 
 on:
   push:
-    branches-ignore:
-      - main
+    branches:
+      - '**'        # Parte su tutti i branch
+      - '!main'     # MA esclude il main
 
 jobs:
   auto-create-pr:
