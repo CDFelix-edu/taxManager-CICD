@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AdminController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">taxManager</a> &gt; <a href="index.source.html" class="el_package">it.unimol.taxManager.controller</a> &gt; <span class="el_source">AdminController.java</span></div><h1>AdminController.java</h1><pre class="source lang-java linenums">package it.unimol.taxManager.controller;
+
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import it.unimol.taxManager.controller.docs.ApiResponseBadRequest;
+import it.unimol.taxManager.controller.docs.ApiResponseBadGateway;
+import it.unimol.taxManager.dto.IseeUpdateDTO;
+import it.unimol.taxManager.dto.BracketsDTO;
+import it.unimol.taxManager.dto.UpdateBracketsDTO;
+import it.unimol.taxManager.dto.UpdateDTO;
+import it.unimol.taxManager.service.AdminService;
+import it.unimol.taxManager.controller.docs.StandardApiResponseErrors;
+import it.unimol.taxManager.service.NotificationSender;
+import org.springframework.http.ResponseEntity;
+
+import java.util.Map;
+
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.GetMapping;
+
+
+@RestController
+@RequestMapping(&quot;/api/v1/admin&quot;)
+public class AdminController {
+
+    private final AdminService adminService;
+    NotificationSender notificationSender;
+
+    @SuppressFBWarnings(&quot;EI_EXPOSE_REP2&quot;)
+<span class="fc" id="L40">    public AdminController(AdminService adminService, NotificationSender notificationSender) {</span>
+<span class="fc" id="L41">        this.adminService = adminService;</span>
+<span class="fc" id="L42">        this.notificationSender = notificationSender;</span>
+<span class="fc" id="L43">    }</span>
+
+
+    @Operation(summary = &quot;Aggiorna il database studenti&quot;, description = &quot;Scarica l'elenco aggiornato dal microservizio Gestione Utenti e Ruoli e aggiorna il database interno.&quot;)
+    @StandardApiResponseErrors
+    @ApiResponse(responseCode = &quot;200&quot;, description = &quot;Database aggiornato correttamente&quot;, content = @Content(mediaType = &quot;application/json&quot;,
+            examples = {
+                    @ExampleObject(
+                            name = &quot;Database già aggiornato&quot;,
+                            value = &quot;&quot;&quot;
+                                    {
+                                      &quot;nuoviUtenti&quot;: 0
+                                    }
+                                    &quot;&quot;&quot;),
+                    @ExampleObject(
+                            name = &quot;Database aggiornato con i valori richiesti&quot;,
+                            value = &quot;&quot;&quot;
+                                    {
+                                       &quot;nuoviUtenti&quot;: 22
+                                     }
+                                    &quot;&quot;&quot;
+                    )}
+    ))
+    @ApiResponseBadGateway
+    @PostMapping(&quot;/UpdateData&quot;)
+    public ResponseEntity&lt;UpdateDTO&gt; updateStudentDatabase(@RequestHeader(&quot;Authorization&quot;) String token) {
+<span class="nc" id="L69">        return ResponseEntity.ok(adminService.updateDatabase(token));</span>
+    }
+
+
+    @Operation(
+            summary = &quot;Aggiorna il valore ISEE di uno studente&quot;,
+            description = &quot;Permette agli utenti amministrativi di modificare il valore ISEE di uno specifico studente&quot;,
+            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    required = false,
+                    content = @Content(
+                            mediaType = &quot;application/json&quot;,
+                            examples = @ExampleObject(
+                                    value = &quot;&quot;&quot;
+                                            {
+                                              &quot;isee&quot;: 15340.00
+                                            }
+                                            &quot;&quot;&quot;
+                            ))))
+    @StandardApiResponseErrors
+    @ApiResponse(responseCode = &quot;200&quot;, description = &quot;ISEE aggiornato correttamente&quot;, content = @Content(mediaType = &quot;application/json&quot;,
+            examples = {
+                    @ExampleObject(name = &quot;Success&quot;, value = &quot;&quot;&quot;
+                            true
+                            &quot;&quot;&quot;),
+                    @ExampleObject(name = &quot;Nessun risultato&quot;, value = &quot;&quot;&quot;
+                            false
+                            &quot;&quot;&quot;)}))
+    @ApiResponse(responseCode = &quot;404&quot;, description = &quot;Studente non trovato&quot;, content = @Content(mediaType = &quot;application/json&quot;,
+            examples = @ExampleObject(value = &quot;&quot;&quot;
+                    {
+                      &quot;status&quot;: &quot;error&quot;,
+                      &quot;messaggio&quot;: &quot;Errore 404 NOT_FOUND: Studente non trovato&quot;
+                    }
+                    &quot;&quot;&quot;)))
+    @PutMapping(&quot;student/isee/{studentId}&quot;)
+    public ResponseEntity&lt;Boolean&gt; updateISEE(
+            @RequestHeader(&quot;Authorization&quot;) String token,
+            @PathVariable String studentId,
+            @RequestBody IseeUpdateDTO body
+    ) {
+<span class="nc" id="L109">        return ResponseEntity.ok(adminService.updateStudentISEE(token, studentId, body));</span>
+    }
+
+
+    @Operation(summary = &quot;Modifica le soglie ISEE&quot;, description = &quot;Permette agli utenti amministrativi di aggiornare le soglie ISEE e l’importo base delle tasse universitarie per un determinato anno accademico.&quot;)
+    @ApiResponse(responseCode = &quot;200&quot;, description = &quot;Soglie ISEE aggiornate correttamente&quot;, content = @Content(mediaType = &quot;application/json&quot;,
+            examples = @ExampleObject(value = &quot;&quot;&quot;
+                    true
+                    &quot;&quot;&quot;)))
+    @ApiResponseBadRequest
+    @StandardApiResponseErrors
+    @PostMapping(&quot;/brackets&quot;)
+    public ResponseEntity&lt;Boolean&gt; updateSoglieIsee(@RequestHeader(&quot;Authorization&quot;) String token, @RequestBody BracketsDTO soglieDTO) {
+<span class="nc" id="L122">        return ResponseEntity.ok(adminService.insertSoglieIsee(token, soglieDTO));</span>
+    }
+
+    //TODO: dovrebbe funzionare solo se non sono ancora state generate le tasse?
+    @Operation(summary = &quot;Aggiorna le soglie ISEE per un anno specifico&quot;, description = &quot;Permette agli utenti amministrativi di aggiornare le soglie ISEE e l’importo base delle tasse universitarie per un anno accademico specifico.&quot;)
+    @ApiResponse(responseCode = &quot;200&quot;, description = &quot;Soglie ISEE aggiornate correttamente&quot;, content = @Content(mediaType = &quot;application/json&quot;,
+            examples = {@ExampleObject(
+                    name = &quot;Success&quot;,
+                    value = &quot;&quot;&quot;
+                              true
+                            &quot;&quot;&quot;), @ExampleObject(
+                    name = &quot;Nessuna modifica&quot;,
+                    value = &quot;&quot;&quot;
+                            false
+                            &quot;&quot;&quot;)}))
+    @ApiResponseBadRequest
+    @StandardApiResponseErrors
+    @PatchMapping(&quot;/brackets/{year}&quot;)
+    public ResponseEntity&lt;Boolean&gt; updateSoglieIseeByYear(@RequestHeader(&quot;Authorization&quot;) String token, @PathVariable int year, @RequestBody UpdateBracketsDTO soglieDTO) {
+<span class="nc" id="L141">        return ResponseEntity.ok(adminService.updateSoglieIsee(token, year, soglieDTO));</span>
+    }
+
+
+    @Operation(summary = &quot;Genera gli avvisi di pagamento per tutti gli studenti&quot;, description = &quot;Permette agli utenti amministrativi di generare gli avvisi di pagamento per tutti gli studenti.&quot;)
+    @ApiResponse(responseCode = &quot;200&quot;, description = &quot;Generazione avvenuta&quot;, content = @Content(mediaType = &quot;application/json&quot;,
+            examples = @ExampleObject(
+                    value = &quot;&quot;&quot;
+                            {
+                              &quot;status&quot;: &quot;success&quot;,
+                              &quot;messaggio&quot;: &quot;Soglie ISEE per l'anno 2025 sono state aggiornate correttamente.&quot;
+                            }
+                            &quot;&quot;&quot;)))
+    @ApiResponseBadRequest
+    @StandardApiResponseErrors
+    @ApiResponseBadGateway
+    @PostMapping(&quot;generate/{year}&quot;)
+    public ResponseEntity&lt;Map&lt;String, Object&gt;&gt; generatePaymentNotice(@RequestHeader(&quot;Authorization&quot;) String token, @PathVariable int year) {
+<span class="nc" id="L159">        return ResponseEntity.ok(adminService.generatePaymentNotices(token, year));</span>
+    }
+
+    @GetMapping(&quot;/test/forcedSendMessage&quot;)
+    public void forcedSendMessage(@RequestHeader(&quot;Authorization&quot;) String token) {
+<span class="nc" id="L164">        notificationSender.sendNotification();</span>
+<span class="nc" id="L165">    }</span>
+
+    
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>
