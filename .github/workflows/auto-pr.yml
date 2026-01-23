@@ -33,11 +33,12 @@ jobs:
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          USER_MSG=$(git log -1 --pretty=%B)
           git add .
           
           BRANCH_NAME="auto-update-${{ github.run_id }}"
           git checkout -b $BRANCH_NAME
-          git commit --allow-empty -m "Trigger PR: Verifiche completate"
+          git commit --allow-empty -m "${USER_MSG:-Auto update from pipeline}"
           git push origin $BRANCH_NAME
           echo "NEW_BRANCH=$BRANCH_NAME" >> $GITHUB_ENV
 
