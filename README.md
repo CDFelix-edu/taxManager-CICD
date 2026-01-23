@@ -292,7 +292,7 @@ Dopo il merge su `main`:
 # 🧭 Branching model consigliato
 
 - `main` → stabile, protetto, solo merge automatici  
-- `dev-branch` → branch permanente di sviluppo  
+- `branchDev` → branch permanente di sviluppo  
 - altri branch → opzionali per feature specifiche  
 
 ---
@@ -302,3 +302,4 @@ Dopo il merge su `main`:
 Per compilare localmente: **mvn clean verify**
 
 Per generare il JAR: **mvn clean package**
+
