@@ -1,0 +1,24 @@
+name: Auto Merge
+
+on:
+  workflow_run:
+    workflows: ["CI Pipeline"]
+    types:
+      - completed
+
+jobs:
+  auto-merge:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup GitHub CLI
+        uses: cli/cli@v2
+        with:
+          version: latest
+
+      - name: Enable auto-merge
+        run: |
+          gh pr merge ${{ github.event.workflow_run.head_branch }} --auto --squash
