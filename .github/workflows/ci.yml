@@ -41,6 +41,7 @@ jobs:
           
           # Verifica se c'è effettivamente qualcosa da committare
           if git diff --staged --quiet; then
+            git commit --allow-empty -m "Trigger PR"
             echo "Nessuna modifica reale rilevata. Salto la PR."
           #  exit 0
           fi
