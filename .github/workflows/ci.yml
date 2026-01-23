@@ -1,23 +1,76 @@
 name: CI Pipeline
 
 on:
-  pull_request:
-    branches: [ "main" ]
+  push:
+    branches:
+      - '**'
+      - '!main'
 
 jobs:
-  build:
+  build-and-deploy:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Carica tutta la cronologia, serve per i linter e git blame
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
+          cache: 'maven' # Velocizza le build successive
 
-      - name: Build with Maven
+      - name: Build and Verify with Maven
+        # Qui eseguiamo tutto: Compilazione, Test, Spotbugs, Jacoco
+        run: mvn -B clean verify
+
+      - name: Create Pull Request
+        id: cpr
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "auto: verificato e pronto"
+          title: "PR Automatica da ${{ github.ref_name }}"
+          body: "La pipeline è passata con successo. Merge automatico in corso..."
+          branch: "auto-pr-temp-${{ github.ref_name }}"
+          base: main
+          delete-branch: true # Pulisce il branch temporaneo dopo il merge
+
+      - name: Automerge
+        if: steps.cpr.outputs.pull-request-operation == 'created'
+        uses: pascalgn/automerge-action@v0.16.3
+        env:
+          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+          MERGE_METHOD: "merge"
+          MERGE_LABELS: ""
+          
+          
+#name: CI Pipeline
+
+#on:
+ # pull_request:
+  #  branches: [ "main" ]
+
+#jobs:
+#  build:
+#    runs-on: ubuntu-latest
+#
+#    steps:
+ #     - name: Checkout repository#
+        uses: actions/checkout@v4
+
+#      - name: Set up JDK 17
+#        uses: actions/setup-java@v4
+#        with:
+#          java-version: '17'
+#          distribution: 'temurin'
+
+#      - name: Build with Maven
         run: mvn -B clean verify
 
