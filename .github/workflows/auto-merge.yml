@@ -28,13 +28,15 @@ jobs:
           # Se non la troviamo, cerchiamo la PR più recente aperta verso il main
           if [ "$PR_NUMBER" == "null" ] || [ -z "$PR_NUMBER" ]; then
             echo "PR specifica non trovata, cerco la PR aperta più recente..."
-            PR_NUMBER=$(gh pr list --base main --limit 1 --json number --jq '.[0].number')
-          fi
+            PR_TITLE=$(gh pr view "$PR_NUMBER" --json title --jq '.title')
+            echo "Titolo PR recuperato: $PR_TITLE"
 
-          # Eseguiamo il merge solo se abbiamo trovato un numero valido
-          if [ "$PR_NUMBER" != "null" ] && [ -n "$PR_NUMBER" ]; then
-            echo "Tento il merge della PR numero: $PR_NUMBER"
-            gh pr merge "$PR_NUMBER" --merge --admin --delete-branch
+            # 3. ESEGUI IL MERGE USANDO IL TITOLO COME MESSAGGIO DEL COMMIT
+            # Usiamo --subject per il titolo e --body per i dettagli
+            gh pr merge "$PR_NUMBER" --squash --admin --delete-branch --subject "$PR_TITLE"
+            
+            echo "Merge completato con successo su main con titolo: $PR_TITLE"
+            gh pr merge "$PR_NUMBER" --squash --admin --delete-branch --body "$USER_MSG"
           else
             echo "Nessuna PR aperta trovata. Salto il merge."
           fi
