@@ -34,6 +34,8 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           USER_MSG=$(git log -1 --pretty=%B)
+          echo "DEBUG: Messaggio rilevato: $USER_MSG"
+          echo "msg=$USER_MSG" >> $GITHUB_OUTPUT
           git add .
           
           BRANCH_NAME="auto-update-${{ github.run_id }}"
