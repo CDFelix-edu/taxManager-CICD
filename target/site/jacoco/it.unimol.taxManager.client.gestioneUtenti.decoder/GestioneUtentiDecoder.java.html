@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>GestioneUtentiDecoder.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">taxManager</a> &gt; <a href="index.source.html" class="el_package">it.unimol.taxManager.client.gestioneUtenti.decoder</a> &gt; <span class="el_source">GestioneUtentiDecoder.java</span></div><h1>GestioneUtentiDecoder.java</h1><pre class="source lang-java linenums">package it.unimol.taxManager.client.gestioneUtenti.decoder;
+
+import feign.Response;
+import feign.codec.ErrorDecoder;
+import it.unimol.taxManager.exception.ExternalServiceException;
+import org.springframework.http.HttpStatus;
+
+<span class="fc" id="L8">public class GestioneUtentiDecoder implements ErrorDecoder {</span>
+
+<span class="fc" id="L10">    private final ErrorDecoder defaultDecoder = new Default();</span>
+
+    @Override
+    public Exception decode(String methodKey, Response response) {
+<span class="nc bnc" id="L14" title="All 2 branches missed.">        if (methodKey.contains(&quot;GestioneUtentiClient&quot;)) {</span>
+<span class="nc bnc" id="L15" title="All 2 branches missed.">            if (response.status() == 400) {</span>
+<span class="nc" id="L16">                return new ExternalServiceException(HttpStatus.BAD_REQUEST,&quot;il microservizio GestioneUtenti non ha potuto completare la richiesta (400)&quot;);</span>
+<span class="nc bnc" id="L17" title="All 2 branches missed.">            } else if (response.status() == 401) {</span>
+<span class="nc" id="L18">                return new ExternalServiceException(HttpStatus.UNAUTHORIZED, &quot;il servizio di GestioneUtenti non ha accettato il token JWT (401)&quot;);</span>
+<span class="nc bnc" id="L19" title="All 2 branches missed.">            } else if (response.status() == 403) {</span>
+<span class="nc" id="L20">                return new ExternalServiceException(HttpStatus.FORBIDDEN, &quot;autorizzazioni utente non sufficienti all'interno del microservizio GestioneUtenti (403)&quot;);</span>
+<span class="nc bnc" id="L21" title="All 2 branches missed.">            } else if (response.status() == 404) {</span>
+<span class="nc" id="L22">                return new ExternalServiceException(HttpStatus.NOT_FOUND, &quot;risorsa assente all'interno del microservizio GestioneUtenti (404)&quot;);</span>
+<span class="nc bnc" id="L23" title="All 2 branches missed.">            }else if (response.status() == 408) {</span>
+<span class="nc" id="L24">                return new ExternalServiceException(HttpStatus.REQUEST_TIMEOUT, &quot;il microservizio GestioneUtenti non risponde (408)&quot;);</span>
+<span class="nc bnc" id="L25" title="All 2 branches missed.">            } else if (response.status() == 500) {</span>
+<span class="nc" id="L26">                return new ExternalServiceException(HttpStatus.INTERNAL_SERVER_ERROR, &quot;Errore interno nel microservizio GestioneUtenti (500)&quot;);</span>
+            } else{
+<span class="nc" id="L28">                return new ExternalServiceException(HttpStatus.INTERNAL_SERVER_ERROR, &quot;Errore generico nel microservizio GestioneUtenti (500)&quot;);</span>
+            }
+        }
+<span class="nc" id="L31">        return defaultDecoder.decode(methodKey, response);</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>
