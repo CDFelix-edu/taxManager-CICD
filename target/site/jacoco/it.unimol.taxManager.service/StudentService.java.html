@@ -1,0 +1,263 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>StudentService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">taxManager</a> &gt; <a href="index.source.html" class="el_package">it.unimol.taxManager.service</a> &gt; <span class="el_source">StudentService.java</span></div><h1>StudentService.java</h1><pre class="source lang-java linenums">package it.unimol.taxManager.service;
+
+import it.unimol.taxManager.client.gestioneUtenti.GestioneUtentiClient;
+import it.unimol.taxManager.client.reportAndAnalysisManager.ReportAndAnalysisClient;
+import it.unimol.taxManager.exception.JwtTokenException;
+import it.unimol.taxManager.model.Tax;
+import it.unimol.taxManager.repository.StudentRepository;
+import it.unimol.taxManager.repository.TaxRepository;
+import it.unimol.taxManager.util.FlyingSaucerService;
+import it.unimol.taxManager.util.JWTToken;
+import it.unimol.taxManager.util.StudentStatus;
+import it.unimol.taxManager.util.TaxStatus;
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Scanner;
+import java.util.NoSuchElementException;
+import java.util.Objects;
+
+//DTO
+import it.unimol.taxManager.dto.StudentDetailsDTO;
+import it.unimol.taxManager.dto.StudentProgressDTO;
+import it.unimol.taxManager.dto.StudentStatusDTO;
+import it.unimol.taxManager.dto.TaxDTO;
+@Service
+public class StudentService {
+
+    private final JWTToken tokenManager;
+    private final TaxRepository taxRepository;
+    private final ReportAndAnalysisClient reportAndAnalysisClient;
+    private final StudentRepository studentRepository;
+    private final GestioneUtentiClient gestioneUtentiClient;
+    private final FlyingSaucerService flyingSaucerService;
+
+
+    public StudentService(JWTToken tokenManager, TaxRepository taxRepository,
+                          ReportAndAnalysisClient reportAndAnalysisClient, StudentRepository studentRepository,
+                          GestioneUtentiClient gestioneUtentiClient,
+<span class="fc" id="L48">                          FlyingSaucerService flyingSaucerService) {</span>
+<span class="fc" id="L49">        this.tokenManager = tokenManager;</span>
+<span class="fc" id="L50">        this.taxRepository = taxRepository;</span>
+<span class="fc" id="L51">        this.reportAndAnalysisClient = reportAndAnalysisClient;</span>
+<span class="fc" id="L52">        this.studentRepository = studentRepository;</span>
+<span class="fc" id="L53">        this.gestioneUtentiClient = gestioneUtentiClient;</span>
+<span class="fc" id="L54">        this.flyingSaucerService = flyingSaucerService;</span>
+<span class="fc" id="L55">    }</span>
+
+    /**
+     * Restituisce la lista delle tasse associate a uno studente specifico.
+     *
+     * @param token     Il token JWT dell'utente che effettua la richiesta.
+     * @param studentId L'ID dello studente di cui si vogliono recuperare le tasse.
+     * @return Una lista di oggetti TaxDTO che rappresentano le tasse dello studente.
+     */
+    public List&lt;TaxDTO&gt; getStudentTaxes(String token, String studentId) {
+        //restituisce la lista di tutte le tasse dello studente specifico in formato testo (solo studente stesso o amministrativi)
+<span class="fc" id="L66">        validateToken(token, studentId);</span>
+
+<span class="fc" id="L68">        checkStudentId(studentId);</span>
+<span class="fc" id="L69">        List&lt;Tax&gt; taxes = taxRepository.findTaxesByStudentId(studentId);</span>
+<span class="fc" id="L70">        List&lt;TaxDTO&gt; taxDTOs = new ArrayList&lt;&gt;();</span>
+
+<span class="pc bpc" id="L72" title="2 of 4 branches missed.">        if (taxes == null || taxes.isEmpty()) {</span>
+<span class="nc" id="L73">            return new ArrayList&lt;&gt;(); // Restituisce una lista vuota se non ci sono tasse</span>
+        }
+<span class="fc bfc" id="L75" title="All 2 branches covered.">        for (Tax tax : taxes) {</span>
+<span class="fc" id="L76">            taxDTOs.add(new TaxDTO(</span>
+<span class="fc" id="L77">                    tax.getId(),</span>
+<span class="fc" id="L78">                    tax.getStudentId(),</span>
+<span class="fc" id="L79">                    tax.getPagoPaNoticeCode(),</span>
+<span class="fc" id="L80">                    tax.getAmount(),</span>
+<span class="fc" id="L81">                    tax.getStatus(),</span>
+<span class="fc" id="L82">                    tax.getExpirationDate(),</span>
+<span class="fc" id="L83">                    tax.getPaymentDate(),</span>
+<span class="fc" id="L84">                    tax.getCreationDate()</span>
+            ));
+<span class="fc" id="L86">        }</span>
+<span class="fc" id="L87">        return taxDTOs;</span>
+    }
+
+
+    /**
+     * Restituisce lo stato dello studente in base alle tasse e al progresso accademico.
+     *
+     * @param token     Il token JWT dell'utente che effettua la richiesta.
+     * @param studentId L'ID dello studente di cui si vuole conoscere lo stato.
+     * @return Un oggetto StudentStatusDTO che rappresenta lo stato dello studente.
+     */
+    public StudentStatusDTO getStudentStatus(String token, String studentId) {
+        //controlla nel database e se ci sono tasse scadute lo segnala
+<span class="nc" id="L100">        validateToken(token, studentId);</span>
+<span class="nc" id="L101">        checkStudentId(studentId);</span>
+
+        // chiamata al microservizio di analisi e reportistica per ottenere lo stato dello studente
+<span class="nc" id="L104">        StudentProgressDTO stdProgress = reportAndAnalysisClient.getStudentProgress(token, studentId);</span>
+
+<span class="nc bnc" id="L106" title="All 2 branches missed.">        if (stdProgress.progressPercentage() == 100) {</span>
+<span class="nc" id="L107">            return new StudentStatusDTO(StudentStatus.COMPLETATO.getStatus(), true);</span>
+        }
+
+<span class="nc" id="L110">        List&lt;Tax&gt; taxes = taxRepository.findTaxesByStudentId(studentId);</span>
+
+<span class="nc bnc" id="L112" title="All 4 branches missed.">        if (taxes == null || taxes.isEmpty()) {</span>
+<span class="nc bnc" id="L113" title="All 2 branches missed.">            if (studentRepository.findById(studentId).get().getStato().equals(StudentStatus.ATTIVO)) {</span>
+<span class="nc" id="L114">                return new StudentStatusDTO(StudentStatus.ATTIVO.getStatus(), true);</span>
+            } else {
+<span class="nc" id="L116">                return new StudentStatusDTO(StudentStatus.IMMATRICOLATO.getStatus(), false);</span>
+            }
+        }
+
+<span class="nc" id="L120">        int mese = LocalDate.now().getMonthValue();</span>
+<span class="nc" id="L121">        int anno = LocalDate.now().getYear();</span>
+<span class="nc bnc" id="L122" title="All 2 branches missed.">        if (mese &lt; 10) {</span>
+<span class="nc" id="L123">            anno--;</span>
+        }
+<span class="nc" id="L125">        boolean attivo = true, congelato = false, iscritto = false;</span>
+
+<span class="nc bnc" id="L127" title="All 2 branches missed.">        for (Tax tax : taxes) {</span>
+<span class="nc bnc" id="L128" title="All 2 branches missed.">            if (tax.getStatus().equals(TaxStatus.UNPAID)) {</span>
+<span class="nc" id="L129">                attivo = false;</span>
+<span class="nc" id="L130">                congelato = true;</span>
+            }
+<span class="nc bnc" id="L132" title="All 2 branches missed.">            if (tax.getStatus().equals(TaxStatus.PENDING)) {</span>
+<span class="nc" id="L133">                attivo = false;</span>
+<span class="nc bnc" id="L134" title="All 2 branches missed.">                if (tax.getExpirationDate().isBefore(LocalDate.now())) {</span>
+<span class="nc" id="L135">                    tax.setStatus(TaxStatus.UNPAID);</span>
+<span class="nc" id="L136">                    taxRepository.save(tax);</span>
+<span class="nc" id="L137">                    congelato = true;</span>
+                }
+            }
+<span class="nc bnc" id="L140" title="All 4 branches missed.">            if (tax.getExpirationDate().isAfter(LocalDate.of(anno, 7, 30)) &amp;&amp; tax.getStatus().equals(TaxStatus.PAID)) {</span>
+<span class="nc" id="L141">                iscritto = true;</span>
+            }
+<span class="nc" id="L143">        }</span>
+<span class="nc bnc" id="L144" title="All 2 branches missed.">        if (attivo) {</span>
+<span class="nc" id="L145">            return new StudentStatusDTO(StudentStatus.ATTIVO.getStatus(),true);</span>
+<span class="nc bnc" id="L146" title="All 2 branches missed.">        } else if (iscritto) {</span>
+<span class="nc bnc" id="L147" title="All 2 branches missed.">            if (congelato) {</span>
+<span class="nc" id="L148">                return new StudentStatusDTO(StudentStatus.CONGELATO.getStatus(), false);</span>
+            }
+<span class="nc" id="L150">            return new StudentStatusDTO(StudentStatus.ISCRITTO.getStatus(), true);</span>
+        }
+<span class="nc" id="L152">        return new StudentStatusDTO(StudentStatus.NON_ISCRITTO.getStatus(),false);</span>
+    }
+
+
+    /**
+     * Restituisce una tassa specifica dello studente in formato testo.
+     *
+     * @param token Il token JWT dell'utente che effettua la richiesta.
+     * @param taxId L'ID della tassa da recuperare.
+     * @return Un oggetto TaxDTO che rappresenta la tassa specifica dello studente.
+     */
+    public TaxDTO getStudentTax(String token, String taxId) {
+        //restituisce la tassa specifica in formato testo (solo studente stesso o amministrativi)
+<span class="nc" id="L165">        Tax tax = taxRepository.findById(Long.parseLong(taxId)).orElseThrow(() -&gt; new ResponseStatusException(HttpStatus.NOT_FOUND, &quot;Tassa non trovata con ID: &quot; + taxId));</span>
+<span class="nc" id="L166">        validateToken(token, tax.getStudentId());</span>
+<span class="nc" id="L167">        return new TaxDTO(</span>
+<span class="nc" id="L168">                tax.getId(),</span>
+<span class="nc" id="L169">                tax.getStudentId(),</span>
+<span class="nc" id="L170">                tax.getPagoPaNoticeCode(),</span>
+<span class="nc" id="L171">                tax.getAmount(),</span>
+<span class="nc" id="L172">                tax.getStatus(),</span>
+<span class="nc" id="L173">                tax.getExpirationDate(),</span>
+<span class="nc" id="L174">                tax.getPaymentDate(),</span>
+<span class="nc" id="L175">                tax.getCreationDate()</span>
+        );
+    }
+
+    /**
+     * Restituisce una tassa specifica dello studente in formato PDF.
+     *
+     * @param token Il token JWT dell'utente che effettua la richiesta.
+     * @param taxId L'ID della tassa da recuperare in formato PDF.
+     * @return Un array di byte che rappresenta il contenuto del PDF della tassa.
+     */
+    public byte[] getPaymentNotice(String token, String taxId) {
+        //devo restituire un PDF della tassa da un codice xhtml mediante l'utilizzo di flying saucer
+
+<span class="nc" id="L189">        Tax tax = taxRepository.findById(Long.parseLong(taxId)).orElseThrow(() -&gt; new ResponseStatusException(HttpStatus.NOT_FOUND, &quot;Tassa non trovata con ID: &quot; + taxId));</span>
+<span class="nc" id="L190">        validateToken(token, tax.getStudentId());</span>
+<span class="nc" id="L191">        checkStudentId(tax.getStudentId());</span>
+
+        //chiamata al microservizio gestione utenti e ruoli per recuperare i dati dello studente
+<span class="nc" id="L194">        StudentDetailsDTO studente = gestioneUtentiClient.getStudentById(token, tax.getStudentId());</span>
+
+<span class="nc" id="L196">        Map&lt;String, String&gt; variables = Map.of(</span>
+<span class="nc" id="L197">                &quot;nome&quot;, studente.name(),</span>
+<span class="nc" id="L198">                &quot;cognome&quot;, studente.surname(),</span>
+<span class="nc" id="L199">                &quot;matricola&quot;, studente.id(),</span>
+<span class="nc" id="L200">                &quot;email&quot;, studente.email(),</span>
+<span class="nc" id="L201">                &quot;importo&quot;, String.format(&quot;%.2f&quot;, tax.getAmount()),</span>
+<span class="nc" id="L202">                &quot;scadenza&quot;, tax.getExpirationDate().format(DateTimeFormatter.ofPattern(&quot;dd/MM/yyyy&quot;)),</span>
+<span class="nc" id="L203">                &quot;paymentNotice&quot;, tax.getPagoPaNoticeCode()</span>
+        );
+
+<span class="nc" id="L206">        String html = generateHtmlFromRawTemplate(&quot;PaymentNotice.raw.xhtml&quot;, variables);</span>
+<span class="nc" id="L207">        return flyingSaucerService.htmlToPdf(html);</span>
+    }
+
+
+    /**
+     * Valida il token JWT e verifica i permessi dell'utente.
+     *
+     * @param token     Il token JWT da validare.
+     * @param studentId L'ID dello studente per cui si stanno verificando i permessi.
+     * @throws JwtTokenException Se il token non è valido o l'utente non ha i permessi sufficienti.
+     */
+    private void validateToken(String token, String studentId) {
+<span class="fc" id="L219">        token = token.replace(&quot;Bearer &quot;, &quot;&quot;);</span>
+<span class="pc bpc" id="L220" title="1 of 2 branches missed.">        if (!tokenManager.isTokenValid(token)) {</span>
+<span class="nc" id="L221">            throw new JwtTokenException(&quot;Token scaduto o non valido.&quot;, JwtTokenException.Reason.INVALID);</span>
+        }
+
+<span class="pc bpc" id="L224" title="5 of 6 branches missed.">        if (!Objects.equals(tokenManager.extractRole(token), &quot;admin&quot;) &amp;&amp; !Objects.equals(tokenManager.extractRole(token), &quot;sadmin&quot;) &amp;&amp; !Objects.equals(tokenManager.extractUserId(token), studentId)) {</span>
+<span class="nc" id="L225">            throw new JwtTokenException(&quot;L'utente non ha i permessi sufficienti.&quot;, JwtTokenException.Reason.UNAUTHORIZED_ROLE);</span>
+        }
+<span class="fc" id="L227">    }</span>
+
+
+    /**
+     * Controlla se l'ID dello studente è valido e se lo studente esiste nel sistema.
+     *
+     * @param studentId L'ID dello studente da verificare.
+     * @throws ResponseStatusException Se l'ID non è valido o lo studente non esiste.
+     */
+    private void checkStudentId(String studentId) {
+<span class="pc bpc" id="L237" title="2 of 4 branches missed.">        if (studentId == null || studentId.length() != 6) {</span>
+<span class="nc" id="L238">            System.out.println(&quot;Dati forniti non validi.&quot;);</span>
+<span class="nc" id="L239">            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, &quot;Dati forniti non validi.&quot;);</span>
+        }
+<span class="pc" id="L241">        studentRepository.findById(studentId).orElseThrow(() -&gt; new ResponseStatusException(HttpStatus.NOT_FOUND, &quot;Studente non presente nel sistema&quot;));</span>
+<span class="fc" id="L242">    }</span>
+
+    public String generateHtmlFromRawTemplate(String templateName, Map&lt;String, String&gt; variables) {
+<span class="nc" id="L245">        try (InputStream is = StudentService.class.getResourceAsStream(&quot;/templates/&quot; + templateName);</span>
+
+<span class="nc" id="L247">             Scanner scanner = new Scanner(is, StandardCharsets.UTF_8)) {</span>
+
+<span class="nc" id="L249">            String html = scanner.useDelimiter(&quot;\\A&quot;).next();</span>
+
+<span class="nc bnc" id="L251" title="All 2 branches missed.">            for (Map.Entry&lt;String, String&gt; entry : variables.entrySet()) {</span>
+<span class="nc" id="L252">                html = html.replace(&quot;{{&quot; + entry.getKey() + &quot;}}&quot;, entry.getValue());</span>
+<span class="nc" id="L253">            }</span>
+
+<span class="nc" id="L255">            return html;</span>
+
+<span class="nc" id="L257">        } catch (IOException | NoSuchElementException e) {</span>
+<span class="nc" id="L258">            throw new RuntimeException(&quot;Errore nel parsing del template: &quot; + templateName, e);</span>
+        }
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>
