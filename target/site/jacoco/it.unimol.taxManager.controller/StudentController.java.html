@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>StudentController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">taxManager</a> &gt; <a href="index.source.html" class="el_package">it.unimol.taxManager.controller</a> &gt; <span class="el_source">StudentController.java</span></div><h1>StudentController.java</h1><pre class="source lang-java linenums">package it.unimol.taxManager.controller;
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import it.unimol.taxManager.controller.docs.ApiResponseBadGateway;
+import it.unimol.taxManager.controller.docs.ApiResponseBadRequest;
+import it.unimol.taxManager.controller.docs.StandardApiResponseErrors;
+import it.unimol.taxManager.dto.StudentStatusDTO;
+import it.unimol.taxManager.dto.TaxDTO;
+import it.unimol.taxManager.service.StudentService;
+import org.springframework.http.ResponseEntity;
+
+import java.util.List;
+
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+@RequestMapping(&quot;/api/v1/student&quot;)
+public class StudentController {
+
+    private final StudentService studentService;
+
+<span class="fc" id="L30">    public StudentController(StudentService studentService) {</span>
+<span class="fc" id="L31">        this.studentService = studentService;</span>
+<span class="fc" id="L32">    }</span>
+
+
+    @Operation(summary = &quot;Restituisce la lista delle tasse di uno studente&quot;, description = &quot;Recupera tutte le tasse associate a uno studente specifico.&quot;)
+    @ApiResponse(responseCode = &quot;200&quot;, description = &quot;Tasse recuperate con successo&quot;,
+            content = @Content(mediaType = &quot;application/json&quot;,
+                    schema = @Schema(implementation = TaxDTO.class),
+                    examples = @ExampleObject(
+                            value = &quot;&quot;&quot;
+                                    [
+                                      {
+                                        &quot;id&quot;: &quot;tax123&quot;,
+                                        &quot;amount&quot;: 100.0,
+                                        &quot;dueDate&quot;: &quot;2023-12-31&quot;,
+                                        &quot;status&quot;: &quot;PENDING&quot;
+                                      },
+                                      {
+                                        &quot;id&quot;: &quot;tax124&quot;,
+                                        &quot;amount&quot;: 150.0,
+                                        &quot;dueDate&quot;: &quot;2024-01-15&quot;,
+                                        &quot;status&quot;: &quot;PAID&quot;
+                                      }
+                                    ]
+                                    &quot;&quot;&quot;)))
+    @ApiResponseBadRequest
+    @ApiResponse(responseCode = &quot;404&quot;, description = &quot;Studente non trovato&quot;,
+            content = @Content(mediaType = &quot;application/json&quot;,
+                    examples = @ExampleObject(
+                            value = &quot;&quot;&quot;
+                                    {
+                                      &quot;messaggio&quot;: &quot;Errore 404 NOT_FOUND: Studente non presente nel sistema&quot;,
+                                      &quot;status&quot;: &quot;error&quot;
+                                    }
+                                    &quot;&quot;&quot;)))
+    @StandardApiResponseErrors
+    @GetMapping(&quot;/{studentId}&quot;)
+    public ResponseEntity&lt;List&lt;TaxDTO&gt;&gt; getStudentById(@RequestHeader(&quot;Authorization&quot;) String token, @PathVariable String studentId) {
+        // Logica per ottenere le informazioni dello studente
+<span class="nc" id="L70">        return ResponseEntity.ok(studentService.getStudentTaxes(token, studentId));</span>
+    }
+
+
+    @Operation(summary = &quot;Restituisce lo stato di uno studente&quot;, description = &quot;Controlla se lo studente ha tasse in sospeso, scadute o se è in regola.&quot;)
+    @ApiResponse(responseCode = &quot;200&quot;, description = &quot;Stato recuperato con successo&quot;,
+            content = @Content(mediaType = &quot;application/json&quot;,
+                    schema = @Schema(implementation = StudentStatusDTO.class),
+                    examples = {@ExampleObject(
+                            name = &quot;Studente in regola&quot;,
+                            value = &quot;&quot;&quot;
+                                    {
+                                    &quot;status&quot;: &quot;Attivo&quot;,
+                                    &quot;inRegola&quot;: true
+                                    }
+                                    &quot;&quot;&quot;), @ExampleObject(
+                            name = &quot;Studente con tasse in sospeso&quot;,
+                            value = &quot;&quot;&quot;
+                                    {
+                                    &quot;status&quot;: &quot;Congelato&quot;,
+                                    &quot;inRegola&quot;: false
+                                    }
+                                    &quot;&quot;&quot;)}))
+    @ApiResponseBadRequest
+    @ApiResponse(responseCode = &quot;404&quot;, description = &quot;Studente non trovato&quot;,
+            content = @Content(mediaType = &quot;application/json&quot;,
+                    examples = @ExampleObject(
+                            value = &quot;&quot;&quot;
+                                    {
+                                       &quot;messaggio&quot;: &quot;Errore 404 NOT_FOUND: Studente non presente nel sistema&quot;,
+                                       &quot;status&quot;: &quot;error&quot;
+                                     }
+                                    &quot;&quot;&quot;)))
+    @StandardApiResponseErrors
+    @GetMapping(&quot;/status/{studentId}&quot;)
+    public ResponseEntity&lt;StudentStatusDTO&gt; getStudentStatus(@RequestHeader(&quot;Authorization&quot;) String token, @PathVariable String studentId) {
+        // Logica per ottenere lo stato dello studente
+<span class="nc" id="L107">        return ResponseEntity.ok(studentService.getStudentStatus(token, studentId));</span>
+    }
+
+
+    @Operation(summary = &quot;Restituisce una specifica tassa&quot;, description = &quot;Recupera le informazioni di una specifica tassa fornendole soltanto se inerente allo studente che effettua la richiesta o ad un amministrativo.&quot;)
+    @ApiResponse(responseCode = &quot;200&quot;, description = &quot;Tassa recuperata con successo&quot;,
+            content = @Content(mediaType = &quot;application/json&quot;,
+                    examples = @ExampleObject(
+                            value = &quot;&quot;&quot;
+                                      {
+                                        &quot;id&quot;: &quot;tax123&quot;,
+                                        &quot;amount&quot;: 100.0,
+                                        &quot;dueDate&quot;: &quot;2023-12-31&quot;,
+                                        &quot;status&quot;: &quot;PENDING&quot;
+                                      }
+                                    &quot;&quot;&quot;)))
+    @ApiResponseBadRequest
+    @ApiResponse(responseCode = &quot;404&quot;, description = &quot;Studente non trovato&quot;,
+            content = @Content(mediaType = &quot;application/json&quot;,
+                    examples = {
+                            @ExampleObject(name = &quot;Studente non trovato&quot;,
+                                    value = &quot;&quot;&quot;
+                                            {
+                                              &quot;messaggio&quot;: &quot;Errore 404 NOT_FOUND: Studente non presente nel sistema&quot;,
+                                              &quot;status&quot;: &quot;error&quot;
+                                            }
+                                            &quot;&quot;&quot;),
+                            @ExampleObject(name = &quot;Tassa non trovata&quot;,
+                                    value = &quot;&quot;&quot;
+                                            {
+                                              &quot;messaggio&quot;: &quot;Errore 404 NOT_FOUND: Tassa non presente nel sistema&quot;,
+                                              &quot;status&quot;: &quot;error&quot;
+                                            }
+                                            &quot;&quot;&quot;)}))
+    @StandardApiResponseErrors
+    @GetMapping(&quot;/taxes/{taxId}&quot;)
+    public ResponseEntity&lt;TaxDTO&gt; getTaxById(@RequestHeader(&quot;Authorization&quot;) String token, @PathVariable String taxId) {
+<span class="nc" id="L144">        return ResponseEntity.ok(studentService.getStudentTax(token, taxId)); // Restituisce la prima tassa come esempio</span>
+    }
+
+
+    @Operation(summary = &quot;Restituisce l'avviso di pagamento in formato PDF di una specifica tassa&quot;, description = &quot;Recupera le informazioni di una specifica tassa fornendole soltanto se inerente allo studente che effettua la richiesta o ad un amministrativo.&quot;)
+    @ApiResponse(responseCode = &quot;200&quot;, description = &quot;PDF recuperata con successo&quot;,
+            content = @Content(mediaType = &quot;application/pdf&quot;,
+                    examples = @ExampleObject(
+                            value = &quot;&quot;&quot;
+                                      PDF DATA
+                                    &quot;&quot;&quot;)))
+    @ApiResponseBadRequest
+    @ApiResponse(responseCode = &quot;404&quot;, description = &quot;Studente non trovato&quot;,
+            content = @Content(mediaType = &quot;application/json&quot;,
+                    examples = @ExampleObject(
+                            value = &quot;&quot;&quot;
+                                    {
+                                      &quot;messaggio&quot;: &quot;Errore 404 NOT_FOUND: Studente non presente nel sistema&quot;,
+                                      &quot;status&quot;: &quot;error&quot;
+                                    }
+                                    &quot;&quot;&quot;)))
+    @StandardApiResponseErrors
+    @ApiResponseBadGateway
+    @GetMapping(&quot;/taxes/pdf/{taxId}&quot;)
+    public ResponseEntity&lt;byte[]&gt; getTaxPdfById(@RequestHeader(&quot;Authorization&quot;) String token, @PathVariable String taxId) {
+<span class="nc" id="L169">        byte[] pdfContent = studentService.getPaymentNotice(token, taxId);</span>
+<span class="nc" id="L170">        return ResponseEntity.ok(pdfContent);</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>
