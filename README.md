@@ -302,3 +302,7 @@ Dopo il merge su `main`:
 Per compilare localmente: **mvn clean verify**
 
 Per generare il JAR: **mvn clean package**
+
+---
+
+# **se si vede questo allora funziona**
