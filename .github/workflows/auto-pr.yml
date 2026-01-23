@@ -1,0 +1,32 @@
+name: Auto PR
+
+on:
+  push:
+    branches-ignore:
+      - main
+
+jobs:
+  create-pr:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup GitHub CLI
+        uses: actions/setup-gh@v3
+
+      - name: Create Pull Request
+        run: |
+          gh pr create \
+            --base main \
+            --head ${{ github.ref_name }} \
+            --title "Auto PR from ${{ github.ref_name }}" \
+            --body "Pull request generata automaticamente."
+
+      - name: Enable auto-merge
+        run: |
+          gh pr merge ${{ github.ref_name }} --auto --squash
