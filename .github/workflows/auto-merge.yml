@@ -22,21 +22,25 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # Cerchiamo la PR specifica per questo run_number
+          # 1. Cerchiamo la PR. Proviamo prima con il branch specifico, poi con la più recente su main.
           PR_NUMBER=$(gh pr list --head "auto-update-${{ github.event.workflow_run.run_number }}" --json number --jq '.[0].number')
           
-          # Se non la troviamo, cerchiamo la PR più recente aperta verso il main
           if [ "$PR_NUMBER" == "null" ] || [ -z "$PR_NUMBER" ]; then
-            echo "PR specifica non trovata, cerco la PR aperta più recente..."
-            PR_TITLE=$(gh pr view "$PR_NUMBER" --json title --jq '.title')
-            echo "Titolo PR recuperato: $PR_TITLE"
+            echo "PR specifica per il run non trovata, cerco l'ultima PR aperta verso main..."
+            PR_NUMBER=$(gh pr list --base main --state open --limit 1 --json number --jq '.[0].number')
+          fi
 
-            # 3. ESEGUI IL MERGE USANDO IL TITOLO COME MESSAGGIO DEL COMMIT
-            # Usiamo --subject per il titolo e --body per i dettagli
-            gh pr merge "$PR_NUMBER" --squash --admin --delete-branch --subject "$PR_TITLE"
+          # 2. Se abbiamo un numero di PR valido, procediamo
+          if [ "$PR_NUMBER" != "null" ] && [ -n "$PR_NUMBER" ]; then
+            echo "PR trovata: $PR_NUMBER. Recupero il titolo..."
             
-            echo "Merge completato con successo su main con titolo: $PR_TITLE"
-            gh pr merge "$PR_NUMBER" --squash --admin --delete-branch --body "$USER_MSG"
+            # Recuperiamo il titolo (che contiene la tua keyword RELEASE)
+            PR_TITLE=$(gh pr view "$PR_NUMBER" --json title --jq '.title')
+            echo "Titolo recuperato: $PR_TITLE"
+
+            # Eseguiamo lo squash merge usando il titolo della PR come titolo del commit
+            gh pr merge "$PR_NUMBER" --squash --admin --delete-branch --subject "$PR_TITLE"
+            echo "Merge completato con successo!"
           else
-            echo "Nessuna PR aperta trovata. Salto il merge."
+            echo "Nessuna PR aperta trovata. Operazione annullata."
           fi
