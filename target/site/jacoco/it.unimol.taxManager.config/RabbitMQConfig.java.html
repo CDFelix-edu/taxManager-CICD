@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>RabbitMQConfig.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">taxManager</a> &gt; <a href="index.source.html" class="el_package">it.unimol.taxManager.config</a> &gt; <span class="el_source">RabbitMQConfig.java</span></div><h1>RabbitMQConfig.java</h1><pre class="source lang-java linenums">package it.unimol.taxManager.config;
+
+import org.springframework.amqp.core.Binding;
+import org.springframework.amqp.core.BindingBuilder;
+import org.springframework.amqp.core.Queue;
+import org.springframework.amqp.core.QueueBuilder;
+import org.springframework.amqp.core.TopicExchange;
+import org.springframework.amqp.rabbit.config.SimpleRabbitListenerContainerFactory;
+import org.springframework.amqp.rabbit.connection.ConnectionFactory;
+import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+@Configuration
+<span class="fc" id="L15">public class RabbitMQConfig {</span>
+    // Exchange ricevuto da GestioneUtenti
+    public static final String USERS_EXCHANGE = &quot;users.exchange&quot;;
+
+    // Routing keys (GestioneUtenti → taxManager)
+    public static final String USER_CREATED = &quot;user.created&quot;;
+    public static final String USER_UPDATED = &quot;user.updated&quot;;
+    public static final String USER_DELETED = &quot;user.deleted&quot;;
+    public static final String ROLE_ASSIGNED = &quot;role.assigned&quot;;
+
+    // Queue per ricevere
+    @Bean
+    public Queue userCreatedQueue() {
+<span class="fc" id="L28">        return QueueBuilder.durable(USER_CREATED).build();</span>
+    }
+
+    @Bean
+    public Queue userUpdatedQueue() {
+<span class="fc" id="L33">        return QueueBuilder.durable(USER_UPDATED).build();</span>
+    }
+
+    @Bean
+    public Queue userDeletedQueue() {
+<span class="fc" id="L38">        return QueueBuilder.durable(USER_DELETED).build();</span>
+    }
+
+    @Bean
+    public Queue roleAssignedQueue() {
+<span class="fc" id="L43">        return QueueBuilder.durable(ROLE_ASSIGNED).build();</span>
+    }
+
+    @Bean
+    public TopicExchange usersExchange() {
+<span class="fc" id="L48">        return new TopicExchange(USERS_EXCHANGE);</span>
+    }
+
+    @Bean
+    public Binding userCreatedBinding(Queue userCreatedQueue, TopicExchange usersExchange) {
+<span class="fc" id="L53">        return BindingBuilder.bind(userCreatedQueue).to(usersExchange).with(USER_CREATED);</span>
+    }
+
+    @Bean
+    public Binding userUpdatedBinding(Queue userUpdatedQueue, TopicExchange usersExchange) {
+<span class="fc" id="L58">        return BindingBuilder.bind(userUpdatedQueue).to(usersExchange).with(USER_UPDATED);</span>
+    }
+
+    @Bean
+    public Binding userDeletedBinding(Queue userDeletedQueue, TopicExchange usersExchange) {
+<span class="fc" id="L63">        return BindingBuilder.bind(userDeletedQueue).to(usersExchange).with(USER_DELETED);</span>
+    }
+
+    @Bean
+    public Binding roleAssignedBinding(Queue roleAssignedQueue, TopicExchange usersExchange) {
+<span class="fc" id="L68">        return BindingBuilder.bind(roleAssignedQueue).to(usersExchange).with(ROLE_ASSIGNED);</span>
+    }
+
+    @Bean
+    public SimpleRabbitListenerContainerFactory rabbitListenerContainerFactory(
+            ConnectionFactory connectionFactory,
+            Jackson2JsonMessageConverter messageConverter
+    ) {
+<span class="fc" id="L76">        SimpleRabbitListenerContainerFactory factory = new SimpleRabbitListenerContainerFactory();</span>
+<span class="fc" id="L77">        factory.setConnectionFactory(connectionFactory);</span>
+<span class="fc" id="L78">        factory.setMessageConverter(messageConverter);</span>
+<span class="fc" id="L79">        return factory;</span>
+    }
+
+    @Bean
+    public Jackson2JsonMessageConverter jacksonMessageConverter() {
+<span class="fc" id="L84">        return new Jackson2JsonMessageConverter();</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>
