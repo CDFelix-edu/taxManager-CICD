@@ -50,7 +50,7 @@ jobs:
           GH_TOKEN: ${{ secrets.MY_PAT }}
         run: |
           gh pr create \
-            --title "Auto PR: Build #${{ github.run_number }}" \
+            --title "Auto PR: Build #${{ github.run_number }} [$USER_MSG]" \
             --body "Pipeline di verifica completata con successo." \
             --base main \
             --head ${{ env.NEW_BRANCH }}
