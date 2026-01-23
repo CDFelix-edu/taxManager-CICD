@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<checkstyle version="9.3">
+<file name="/home/runner/work/taxManager-CICD/taxManager-CICD/src/main/java/it/unimol/taxManager/model/Student.java">
+</file>
+<file name="/home/runner/work/taxManager-CICD/taxManager-CICD/src/main/java/it/unimol/taxManager/model/Tax.java">
+</file>
+<file name="/home/runner/work/taxManager-CICD/taxManager-CICD/src/main/java/it/unimol/taxManager/model/Brackets.java">
+</file>
+<file name="/home/runner/work/taxManager-CICD/taxManager-CICD/src/main/java/it/unimol/taxManager/TaxManagerApplication.java">
+</file>
+<file name="/home/runner/work/taxManager-CICD/taxManager-CICD/src/main/java/it/unimol/taxManager/exception/ExternalExceptionHandler.java">
+</file>
+<file name="/home/runner/work/taxManager-CICD/taxManager-CICD/src/main/java/it/unimol/taxManager/exception/ExternalServiceException.java">
+</file>
+<file name="/home/runner/work/taxManager-CICD/taxManager-CICD/src/main/java/it/unimol/taxManager/exception/JwtTokenExceptionHandler.java">
+</file>
+<file name="/home/runner/work/taxManager-CICD/taxManager-CICD/src/main/java/it/unimol/taxManager/exception/InternalExceptionHandler.java">
+</file>
+<file name="/home/runner/work/taxManager-CICD/taxManager-CICD/src/main/java/it/unimol/taxManager/exception/JwtTokenException.java">
+</file>
+<file name="/home/runner/work/taxManager-CICD/taxManager-CICD/src/main/java/it/unimol/taxManager/dto/TokenJWTDTO.java">
+</file>
+<file name="/home/runner/work/taxManager-CICD/taxManager-CICD/src/main/java/it/unimol/taxManager/dto/StudentStatusDTO.java">
+</file>
+<file name="/home/runner/work/taxManager-CICD/taxManager-CICD/src/main/java/it/unimol/taxManager/dto/UpdateBracketsDTO.java">
+</file>
+<file name="/home/runner/work/taxManager-CICD/taxManager-CICD/src/main/java/it/unimol/taxManager/dto/StudentProgressDTO.java">
+</file>
+<file name="/home/runner/work/taxManager-CICD/taxManager-CICD/src/main/java/it/unimol/taxManager/dto/IseeUpdateDTO.java">
+</file>
+<file name="/home/runner/work/taxManager-CICD/taxManager-CICD/src/main/java/it/unimol/taxManager/dto/StudentDetailsDTO.java">
+</file>
+<file name="/home/runner/work/taxManager-CICD/taxManager-CICD/src/main/java/it/unimol/taxManager/dto/PagoPATaxDTO.java">
+</file>
+<file name="/home/runner/work/taxManager-CICD/taxManager-CICD/src/main/java/it/unimol/taxManager/dto/PagoPaDetailsDTO.java">
+</file>
+<file name="/home/runner/work/taxManager-CICD/taxManager-CICD/src/main/java/it/unimol/taxManager/dto/StudentDTO.java">
+</file>
+<file name="/home/runner/work/taxManager-CICD/taxManager-CICD/src/main/java/it/unimol/taxManager/dto/BracketsDTO.java">
+</file>
+<file name="/home/runner/work/taxManager-CICD/taxManager-CICD/src/main/java/it/unimol/taxManager/dto/TaxDTO.java">
+</file>
+<file name="/home/runner/work/taxManager-CICD/taxManager-CICD/src/main/java/it/unimol/taxManager/dto/LoginRequestDTO.java">
+</file>
+<file name="/home/runner/work/taxManager-CICD/taxManager-CICD/src/main/java/it/unimol/taxManager/dto/UpdateDTO.java">
+</file>
+<file name="/home/runner/work/taxManager-CICD/taxManager-CICD/src/main/java/it/unimol/taxManager/service/AdminService.java">
+</file>
+<file name="/home/runner/work/taxManager-CICD/taxManager-CICD/src/main/java/it/unimol/taxManager/service/TaxService.java">
+</file>
+<file name="/home/runner/work/taxManager-CICD/taxManager-CICD/src/main/java/it/unimol/taxManager/service/StudentService.java">
+</file>
+<file name="/home/runner/work/taxManager-CICD/taxManager-CICD/src/main/java/it/unimol/taxManager/service/NotificationSender.java">
+</file>
+<file name="/home/runner/work/taxManager-CICD/taxManager-CICD/src/main/java/it/unimol/taxManager/client/gestioneUtenti/decoder/GestioneUtentiDecoder.java">
+</file>
+<file name="/home/runner/work/taxManager-CICD/taxManager-CICD/src/main/java/it/unimol/taxManager/client/gestioneUtenti/GestioneUtentiConfig.java">
+</file>
+<file name="/home/runner/work/taxManager-CICD/taxManager-CICD/src/main/java/it/unimol/taxManager/client/gestioneUtenti/GestioneUtentiClient.java">
+</file>
+<file name="/home/runner/work/taxManager-CICD/taxManager-CICD/src/main/java/it/unimol/taxManager/client/reportAndAnalysisManager/ReportAndAnalysisClient.java">
+</file>
+<file name="/home/runner/work/taxManager-CICD/taxManager-CICD/src/main/java/it/unimol/taxManager/client/reportAndAnalysisManager/decoder/ReportAndAnalysisDecoder.java">
+</file>
+<file name="/home/runner/work/taxManager-CICD/taxManager-CICD/src/main/java/it/unimol/taxManager/client/reportAndAnalysisManager/ReportAndAnalysisConfig.java">
+</file>
+<file name="/home/runner/work/taxManager-CICD/taxManager-CICD/src/main/java/it/unimol/taxManager/client/PagoPA/PagoPAClient.java">
+</file>
+<file name="/home/runner/work/taxManager-CICD/taxManager-CICD/src/main/java/it/unimol/taxManager/client/PagoPA/PagoPAConfig.java">
+</file>
+<file name="/home/runner/work/taxManager-CICD/taxManager-CICD/src/main/java/it/unimol/taxManager/client/PagoPA/decoder/PagoPADecoder.java">
+</file>
+<file name="/home/runner/work/taxManager-CICD/taxManager-CICD/src/main/java/it/unimol/taxManager/messaging/UserDeletedConsumer.java">
+</file>
+<file name="/home/runner/work/taxManager-CICD/taxManager-CICD/src/main/java/it/unimol/taxManager/messaging/RoleAssignedConsumer.java">
+</file>
+<file name="/home/runner/work/taxManager-CICD/taxManager-CICD/src/main/java/it/unimol/taxManager/messaging/UserCreatedConsumer.java">
+</file>
+<file name="/home/runner/work/taxManager-CICD/taxManager-CICD/src/main/java/it/unimol/taxManager/messaging/UserUpdatedConsumer.java">
+</file>
+<file name="/home/runner/work/taxManager-CICD/taxManager-CICD/src/main/java/it/unimol/taxManager/config/RabbitMQConfig.java">
+</file>
+<file name="/home/runner/work/taxManager-CICD/taxManager-CICD/src/main/java/it/unimol/taxManager/config/OpenAPIConfig.java">
+</file>
+<file name="/home/runner/work/taxManager-CICD/taxManager-CICD/src/main/java/it/unimol/taxManager/util/TaxStatus.java">
+</file>
+<file name="/home/runner/work/taxManager-CICD/taxManager-CICD/src/main/java/it/unimol/taxManager/util/StudentStatus.java">
+</file>
+<file name="/home/runner/work/taxManager-CICD/taxManager-CICD/src/main/java/it/unimol/taxManager/util/FlyingSaucerService.java">
+</file>
+<file name="/home/runner/work/taxManager-CICD/taxManager-CICD/src/main/java/it/unimol/taxManager/util/JWTToken.java">
+</file>
+<file name="/home/runner/work/taxManager-CICD/taxManager-CICD/src/main/java/it/unimol/taxManager/controller/docs/ApiResponseBadRequest.java">
+</file>
+<file name="/home/runner/work/taxManager-CICD/taxManager-CICD/src/main/java/it/unimol/taxManager/controller/docs/ApiResponseBadGateway.java">
+</file>
+<file name="/home/runner/work/taxManager-CICD/taxManager-CICD/src/main/java/it/unimol/taxManager/controller/docs/StandardApiResponseErrors.java">
+</file>
+<file name="/home/runner/work/taxManager-CICD/taxManager-CICD/src/main/java/it/unimol/taxManager/controller/AdminController.java">
+</file>
+<file name="/home/runner/work/taxManager-CICD/taxManager-CICD/src/main/java/it/unimol/taxManager/controller/StudentController.java">
+</file>
+<file name="/home/runner/work/taxManager-CICD/taxManager-CICD/src/main/java/it/unimol/taxManager/controller/TaxController.java">
+</file>
+<file name="/home/runner/work/taxManager-CICD/taxManager-CICD/src/main/java/it/unimol/taxManager/repository/SogliaRepository.java">
+</file>
+<file name="/home/runner/work/taxManager-CICD/taxManager-CICD/src/main/java/it/unimol/taxManager/repository/TaxRepository.java">
+</file>
+<file name="/home/runner/work/taxManager-CICD/taxManager-CICD/src/main/java/it/unimol/taxManager/repository/StudentRepository.java">
+</file>
+<file name="/home/runner/work/taxManager-CICD/taxManager-CICD/src/main/resources/application.properties">
+</file>
+<file name="/home/runner/work/taxManager-CICD/taxManager-CICD/src/test/resources/application-test.properties">
+</file>
+</checkstyle>
