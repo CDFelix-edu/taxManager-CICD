@@ -1,14 +1,14 @@
-name: Auto Create Pull Request
+name: Auto create pull request
 
 on:
   push:
-    branches:
-      - '**'        # Parte su tutti i branch
-      - '!main'     # MA esclude il main
+    branches-ignore:
+      - main
 
 jobs:
   auto-create-pr:
     runs-on: ubuntu-latest
+
     permissions:
       contents: write
       pull-requests: write
@@ -16,17 +16,17 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0 # SCARICA TUTTA LA STORIA. CRITICO.
 
-      - name: Create Pull Request
+      - name: Create pull request
         uses: peter-evans/create-pull-request@v6
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           base: main
-          branch: auto-pr-test-branch
-          title: "PR di Sblocco"
-          body: "Se vedi questa PR, l'allineamento è risolto."
-          delete-branch: true
-
-          name: Auto Create Pull Request
+          branch: ${{ github.ref_name }}
+          title: "Auto PR from ${{
+            github.ref_name
+          }}"
+          body: |
+            Pull request generata automaticamente dal branch `${{ github.ref_name }}`.
+            La pipeline CI verificherà la qualità del codice prima del merge.
+          draft: false
