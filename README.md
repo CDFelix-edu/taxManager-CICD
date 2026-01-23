@@ -159,11 +159,146 @@ Gestione delle tasse universitarie per studenti, incluse:
 ```
 
 ---
-## 🚦 Continuous Integration (GitHub Actions):
 
-Il progetto include una pipeline CI che esegue automaticamente:
-- build Maven
-- test con profilo test (H2)
-- verifica compilazione
+# 🧩 Struttura CI/CD del progetto
 
-Workflow: `.github/workflows/ci.yml`
+Il progetto implementa una pipeline CI/CD completa basata su GitHub Actions, con:
+
+- **Auto‑PR** → crea automaticamente una Pull Request quando si fa push su un branch diverso da `main`
+- **CI Pipeline** → build, test, Checkstyle, SpotBugs, JaCoCo
+- **Auto‑Merge** → unisce automaticamente la PR se la CI è verde
+- **Release automatica** → genera una GitHub Release con JAR se il commit contiene la keyword `RELEASE`
+
+---
+
+## 🔐 Protezione del branch `main`
+
+Il branch `main` è configurato con:
+
+- Require pull request before merging  
+- Require status checks to pass  
+- Auto‑merge abilitato  
+- Nessun push diretto consentito  
+
+Questo garantisce che `main` rimanga sempre stabile, testato e conforme agli standard di qualità.
+
+---
+
+## 🔄 Flusso di lavoro completo
+
+1. Lo sviluppatore lavora su `dev-branch` (branch permanente)
+2. Esegue commit e push
+3. **Auto‑PR** crea automaticamente una PR verso `main`
+4. **CI Pipeline** esegue:
+   - build
+   - test
+   - Checkstyle (warnings + errors)
+   - SpotBugs
+   - JaCoCo
+5. Se tutto è verde → **Auto‑Merge**
+6. Il merge genera un push su `main`
+7. Se il commit contiene `RELEASE` → **Release automatica con JAR**
+
+---
+
+## 🧪 CI Pipeline – Build & Test
+
+La pipeline CI esegue:
+
+- `mvn -B clean verify`
+- Test JUnit
+- Test con database H2
+- Generazione report JaCoCo
+- Analisi SpotBugs
+- Checkstyle (warnings + errors)
+
+---
+
+### 🧹 Checkstyle
+
+Il progetto utilizza due configurazioni distinte:
+
+#### 🔸 warnings.xml (non blocca la build)
+
+Regole principali:
+
+- LineLength ≤ 140
+- WhitespaceAround
+- WhitespaceAfter
+- Indentation (4 spazi)
+
+Obiettivo: migliorare leggibilità e formattazione.
+
+#### 🔹 errors.xml (blocca la build)
+
+Regole principali:
+
+- TypeName → classi in PascalCase  
+- AvoidStarImport → vietati `import *`  
+- LocalVariableName → variabili in camelCase  
+- MethodName → metodi in camelCase  
+
+Obiettivo: garantire standard minimi obbligatori.
+
+---
+
+### 🐞 SpotBugs
+
+Configurazione:
+
+- effort = max  
+- threshold = Low  
+- failOnError = true  
+
+SpotBugs analizza:
+
+- null pointer potenziali  
+- errori logici  
+- vulnerabilità  
+- cattive pratiche  
+
+Se trova bug → la CI fallisce.
+
+---
+
+### 📊 JaCoCo – Code Coverage
+
+Configurazione:
+
+- Report generato in `target/site/jacoco`
+- Coverage minima richiesta:
+  - 20% LINE COVEREDRATIO (coverage bassa usata a puro scopo formativo)
+  - Solo per classi in:
+    ```
+    it.unimol.taxManager.service.*
+    ```
+
+Se la coverage è inferiore → la CI fallisce.
+
+---
+
+## 📦 Release automatica
+
+Per generare una release: basta fare un commit che contiene la keyword: ***RELEASE***
+
+Dopo il merge su `main`:
+- viene compilato il progetto  
+- viene generato il JAR  
+- viene creata una release nella sezione **Releases**  
+- il JAR viene allegato automaticamente  
+
+---
+
+# 🧭 Branching model consigliato
+
+- `main` → stabile, protetto, solo merge automatici  
+- `dev-branch` → branch permanente di sviluppo  
+- altri branch → opzionali per feature specifiche  
+
+---
+
+# 🛠️ Build locale
+
+Per compilare localmente: **mvn clean verify**
+
+Per generare il JAR: **mvn clean package**
