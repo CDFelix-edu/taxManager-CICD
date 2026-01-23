@@ -3,7 +3,7 @@ name: Auto Create Pull Request
 on:
   push:
     branches:
-      - dev-fix-pipeline # Usa il nuovo branch per il test
+      - - dev-branch
 
 jobs:
   auto-create-pr:
