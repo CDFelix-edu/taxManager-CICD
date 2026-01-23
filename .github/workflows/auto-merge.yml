@@ -22,19 +22,23 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # Cerchiamo la PR specifica per questo run_number usando la sintassi --json
-          PR_NUMBER=$(gh pr list --head "auto-update-${{ github.event.workflow_run.run_number }}" --json number --jq '.[0].number')
-          
-          # Se non la troviamo, cerchiamo la PR più recente aperta verso il main
-          if [ "$PR_NUMBER" == "null" ] || [ -z "$PR_NUMBER" ]; then
-            echo "PR specifica non trovata, cerco la PR aperta più recente..."
-            PR_NUMBER=$(gh pr list --base main --limit 1 --json number --jq '.[0].number')
-          fi
+          # 1. Cerchiamo qualsiasi PR aperta che punta al main
+          # Prendiamo la più recente per sicurezza
+          PR_NUMBER=$(gh pr list --base main --state open --limit 1 --json number --jq '.[0].number')
 
-          # Eseguiamo il merge solo se abbiamo trovato un numero valido
           if [ "$PR_NUMBER" != "null" ] && [ -n "$PR_NUMBER" ]; then
-            echo "Tento il merge della PR numero: $PR_NUMBER"
-            gh pr merge "$PR_NUMBER" --merge --admin --delete-branch
+            echo "PR trovata: $PR_NUMBER"
+            
+            # 2. Recuperiamo il titolo per non perdere la keyword RELEASE
+            PR_TITLE=$(gh pr view "$PR_NUMBER" --json title --jq '.title')
+            echo "Titolo PR: $PR_TITLE"
+
+            # 3. Eseguiamo il merge. 
+            # NOTA: usiamo --subject per passare il titolo con la keyword
+            gh pr merge "$PR_NUMBER" --squash --admin --delete-branch --subject "$PR_TITLE"
+            
+            echo "Merge effettuato con successo."
           else
-            echo "Nessuna PR aperta trovata. Salto il merge."
+            echo "Errore: Nessuna PR aperta trovata verso il branch main."
+            exit 0 # Usciamo senza errore per non far fallire il workflow inutilmente
           fi
