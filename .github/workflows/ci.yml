@@ -1,4 +1,4 @@
-name: CI Pipeline
+name: 1. Build and Propose PR
 
 on:
   pull_request:
