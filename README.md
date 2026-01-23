@@ -306,3 +306,4 @@ Per generare il JAR: **mvn clean package**
 ---
 
 # **se si vede questo allora funziona**
+# **MA SI DEVE VEDERE ANCHE QUESTO!!!   L&G, AUTO MERGE!**
