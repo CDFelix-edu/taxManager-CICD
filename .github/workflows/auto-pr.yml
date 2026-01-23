@@ -3,7 +3,7 @@ name: Auto Create Pull Request
 on:
   push:
     branches:
-      - dev-branch
+      - dev-fix-pipeline # Usa il nuovo branch per il test
 
 jobs:
   auto-create-pr:
@@ -16,18 +16,14 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          # SCARICA TUTTA LA STORIA. Senza questo, Git spesso non vede le differenze
-          fetch-depth: 0 
+          fetch-depth: 0 # SCARICA TUTTA LA STORIA. CRITICO.
 
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v6
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           base: main
-          # Usa un nome di branch PR statico per evitare di creare mille branch orfani
-          branch: auto-pr-sync
-          title: "Auto PR from dev-branch"
-          body: "Pull request generata automaticamente. Verificata divergenza reale."
-          # FORZA la creazione anche se l'azione è incerta (commit vuoti esclusi)
-          commit-message: "Automated sync commit"
+          branch: auto-pr-test-branch
+          title: "PR di Sblocco"
+          body: "Se vedi questa PR, l'allineamento è risolto."
           delete-branch: true
