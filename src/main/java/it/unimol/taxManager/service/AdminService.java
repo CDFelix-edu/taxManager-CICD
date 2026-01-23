@@ -68,14 +68,7 @@ public class AdminService {
                 }
             }
         }
-
-        // Risposta formattata
         return new UpdateDTO(nuoviStudenti);
-        /*Map.of(
-                "status", "success",
-                "messaggio", "Database studenti aggiornato correttamente.",
-                "studenti_aggiornati", nuoviStudenti
-        );*/
     }
 
 

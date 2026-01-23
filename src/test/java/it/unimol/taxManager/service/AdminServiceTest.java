@@ -11,7 +11,6 @@ import it.unimol.taxManager.repository.SogliaRepository;
 import it.unimol.taxManager.repository.StudentRepository;
 import it.unimol.taxManager.repository.TaxRepository;
 import it.unimol.taxManager.util.JWTToken;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -40,15 +39,6 @@ class AdminServiceTest {
     @Mock
     private JWTToken tokenManager;
 
-    @Mock
-    private TaxRepository taxRepository;
-
-    @Mock
-    private PagoPAClient pagoPAClient;
-
-    @Mock
-    private ReportAndAnalysisClient reportAndAnalysisClient;
-
     @InjectMocks
     private AdminService adminService;
 
@@ -59,6 +49,7 @@ class AdminServiceTest {
     // updateDatabase
     // ---------------------------------------------------------
 
+    //test che verifica che vengano aggiunti nuovi studenti
     @Test
     void updateDatabase_shouldAddNewStudents() {
         StudentDTO s1 = new StudentDTO("S1", "student");
@@ -79,6 +70,7 @@ class AdminServiceTest {
         verify(studentRepository, times(2)).save(any(Student.class));
     }
 
+    //test che verifica che non vengano aggiunti studenti esistenti
     @Test
     void updateDatabase_shouldNotAddExistingStudents() {
         StudentDTO s1 = new StudentDTO("S1", "student");
@@ -100,6 +92,7 @@ class AdminServiceTest {
     // updateStudentISEE
     // ---------------------------------------------------------
 
+    // test che verifica che venga rifiutato un valore ISEE negativo
     @Test
     void updateStudentISEE_shouldRejectNegativeIsee() {
 
@@ -109,6 +102,7 @@ class AdminServiceTest {
                 () -> adminService.updateStudentISEE(VALID_TOKEN, "S1", new IseeUpdateDTO(-10)));
     }
 
+    // test che verifica che venga lanciata un'eccezione quando lo studente non viene trovato
     @Test
     void updateStudentISEE_shouldThrowWhenStudentNotFound() {
         when(tokenManager.isTokenValid(RAW_TOKEN)).thenReturn(true);
@@ -119,6 +113,7 @@ class AdminServiceTest {
                 () -> adminService.updateStudentISEE(VALID_TOKEN, "S1", new IseeUpdateDTO(1000)));
     }
 
+    // test che verifica che non venga effettuato l'aggiornamento se il valore ISEE è lo stesso
     @Test
     void updateStudentISEE_shouldReturnFalseWhenSameValue() {
         when(tokenManager.isTokenValid(RAW_TOKEN)).thenReturn(true);
@@ -133,6 +128,7 @@ class AdminServiceTest {
         assertFalse(result);
     }
 
+    // test che verifica che l'aggiornamento del valore ISEE venga effettuato correttamente
     @Test
     void updateStudentISEE_shouldUpdateValue() {
         when(tokenManager.isTokenValid(RAW_TOKEN)).thenReturn(true);
@@ -152,6 +148,7 @@ class AdminServiceTest {
     // insertSoglieIsee
     // ---------------------------------------------------------
 
+    // test che verifica che venga rifiutato un anno non valido
     @Test
     void insertSoglieIsee_shouldRejectInvalidYear() {
         when(tokenManager.isTokenValid(RAW_TOKEN)).thenReturn(true);
@@ -162,6 +159,7 @@ class AdminServiceTest {
                 () -> adminService.insertSoglieIsee(VALID_TOKEN, dto));
     }
 
+    // test che verifica che venga rifiutato un anno già esistente
     @Test
     void insertSoglieIsee_shouldRejectExistingYear() {
         when(tokenManager.isTokenValid(RAW_TOKEN)).thenReturn(true);
@@ -174,6 +172,108 @@ class AdminServiceTest {
                 () -> adminService.insertSoglieIsee(VALID_TOKEN, dto));
     }
 
+    // test che verifica che venga rifiutato un importo base negativo
+    @Test
+    void insertSoglieIsee_shouldRejectNegativeImportoBase() {
+        when(tokenManager.isTokenValid(RAW_TOKEN)).thenReturn(true);
+        when(tokenManager.extractRole(RAW_TOKEN)).thenReturn("admin");
+        when(sogliaRepository.existsByAnno(2024)).thenReturn(false);
+
+        BracketsDTO dto = new BracketsDTO(
+                2024,
+                -1.0,          // importoBase negativo
+                18000.0, 75,
+                25000.0, 50,
+                35000.0, 25,
+                50000.0, 0
+        );
+
+        assertThrows(ResponseStatusException.class,
+                () -> adminService.insertSoglieIsee(VALID_TOKEN, dto));
+    }
+
+    // test che verifica che vengano rifiutati valori di soglia non ordinati
+    @Test
+    void insertSoglieIsee_shouldRejectUnorderedThresholds() {
+        when(tokenManager.isTokenValid(RAW_TOKEN)).thenReturn(true);
+        when(tokenManager.extractRole(RAW_TOKEN)).thenReturn("admin");
+        when(sogliaRepository.existsByAnno(2024)).thenReturn(false);
+
+        BracketsDTO dto = new BracketsDTO(
+                2024,
+                100.0,
+                30000.0, 75,
+                20000.0, 50,   // soglia2 < soglia1 → errore
+                35000.0, 25,
+                50000.0, 0
+        );
+
+        assertThrows(ResponseStatusException.class,
+                () -> adminService.insertSoglieIsee(VALID_TOKEN, dto));
+    }
+
+    // test che verifica che vengano rifiutati valori soglie negative
+    @Test
+    void insertSoglieIsee_shouldRejectNegativeThresholds() {
+        when(tokenManager.isTokenValid(RAW_TOKEN)).thenReturn(true);
+        when(tokenManager.extractRole(RAW_TOKEN)).thenReturn("admin");
+        when(sogliaRepository.existsByAnno(2024)).thenReturn(false);
+
+        BracketsDTO dto = new BracketsDTO(
+                2024,
+                100.0,
+                -1.0, 75,      // soglia1 negativa
+                25000.0, 50,
+                35000.0, 25,
+                50000.0, 0
+        );
+
+        assertThrows(ResponseStatusException.class,
+                () -> adminService.insertSoglieIsee(VALID_TOKEN, dto));
+    }
+
+    //test che verifica che vengano rifiutati valori di sconto negativi
+    @Test
+    void insertSoglieIsee_shouldRejectNegativeDiscounts() {
+        when(tokenManager.isTokenValid(RAW_TOKEN)).thenReturn(true);
+        when(tokenManager.extractRole(RAW_TOKEN)).thenReturn("admin");
+        when(sogliaRepository.existsByAnno(2024)).thenReturn(false);
+
+        BracketsDTO dto = new BracketsDTO(
+                2024,
+                100.0,
+                18000.0, 75,   // sconto1 negativo
+                25000.0, 50,
+                35000.0, 25,
+                50000.0, -5
+        );
+
+        assertThrows(ResponseStatusException.class,
+                () -> adminService.insertSoglieIsee(VALID_TOKEN, dto));
+    }
+
+    // test che verifica che vengano rifiutati valori di sconto non ordinati
+    @Test
+    void insertSoglieIsee_shouldRejectUnorderedDiscounts() {
+        when(tokenManager.isTokenValid(RAW_TOKEN)).thenReturn(true);
+        when(tokenManager.extractRole(RAW_TOKEN)).thenReturn("admin");
+        when(sogliaRepository.existsByAnno(2024)).thenReturn(false);
+
+        BracketsDTO dto = new BracketsDTO(
+                2024,
+                100.0,
+                18000.0, 50,
+                25000.0, 60,   // sconto2 > sconto1 → errore
+                35000.0, 25,
+                50000.0, 0
+        );
+
+        assertThrows(ResponseStatusException.class,
+                () -> adminService.insertSoglieIsee(VALID_TOKEN, dto));
+    }
+
+
+    // test che verifica che l'inserimento delle soglie ISEE venga effettuato correttamente
     @Test
     void insertSoglieIsee_shouldInsertCorrectly() {
         when(tokenManager.isTokenValid(RAW_TOKEN)).thenReturn(true);
@@ -192,6 +292,7 @@ class AdminServiceTest {
     // updateSoglieIsee
     // ---------------------------------------------------------
 
+    // test che verifica che venga rifiutato un aggiornamento vuoto
     @Test
     void updateSoglieIsee_shouldRejectEmptyUpdate() {
         when(tokenManager.isTokenValid(RAW_TOKEN)).thenReturn(true);
@@ -206,6 +307,7 @@ class AdminServiceTest {
                 () -> adminService.updateSoglieIsee(VALID_TOKEN, 2024, update));
     }
 
+    // test che verifica che non venga effettuato l'aggiornamento se non ci sono cambiamenti
     @Test
     void updateSoglieIsee_shouldReturnFalseWhenNoChanges() {
         when(tokenManager.isTokenValid(RAW_TOKEN)).thenReturn(true);
@@ -226,6 +328,7 @@ class AdminServiceTest {
         assertFalse(result);
     }
 
+    // test che verifica che l'aggiornamento delle soglie ISEE venga effettuato correttamente
     @Test
     void updateSoglieIsee_shouldUpdateCorrectly() {
         when(tokenManager.isTokenValid(RAW_TOKEN)).thenReturn(true);
@@ -247,6 +350,7 @@ class AdminServiceTest {
         verify(sogliaRepository).save(any(Brackets.class));
     }
 
+    // test che verifica che vengano rifiutati valori di soglia non ordinati
     @Test
     void updateSoglieIsee_shouldRejectUnorderedThresholds() {
         when(tokenManager.isTokenValid(RAW_TOKEN)).thenReturn(true);
@@ -256,17 +360,18 @@ class AdminServiceTest {
         when(sogliaRepository.findByAnno(2024)).thenReturn(Optional.of(existing));
 
         UpdateBracketsDTO update = new UpdateBracketsDTO(
-                null,
-                30000.0, 75,
-                20000.0, 50,
-                null, null,
-                null, null
+                3200.0,
+                20000.0, 75,
+                25000.0, 50,
+                22000.0, 30,
+                32000.0, 0
         );
 
         assertThrows(ResponseStatusException.class,
                 () -> adminService.updateSoglieIsee(VALID_TOKEN, 2024, update));
     }
 
+    // test che verifica che vengano rifiutati valori di sconto non ordinati
     @Test
     void updateSoglieIsee_shouldRejectUnorderedDiscounts() {
         when(tokenManager.isTokenValid(RAW_TOKEN)).thenReturn(true);
