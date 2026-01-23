@@ -2,8 +2,8 @@ name: Auto Create Pull Request
 
 on:
   push:
-    branches:
-      - - dev-branch
+    branches-ignore:
+      - main
 
 jobs:
   auto-create-pr:
@@ -27,3 +27,5 @@ jobs:
           title: "PR di Sblocco"
           body: "Se vedi questa PR, l'allineamento è risolto."
           delete-branch: true
+
+          name: Auto Create Pull Request
