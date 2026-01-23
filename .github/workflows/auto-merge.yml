@@ -1,0 +1,26 @@
+name: 2. Finalize and Merge
+
+on:
+  pull_request:
+    branches:
+      - main
+    types: [opened, synchronize]
+
+jobs:
+  merge-pr:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Wait for checks (Optional)
+        run: sleep 10 # Un piccolo delay per far sì che GitHub aggiorni lo stato dei check
+
+      - name: Auto Merge
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Usiamo l'ID della PR che ha scatenato il workflow
+          # Usiamo --auto o --admin per essere sicuri
+          gh pr merge ${{ github.event.pull_request.number }} --merge --admin --delete-branch
