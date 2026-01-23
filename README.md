@@ -279,7 +279,8 @@ Se la coverage è inferiore → la CI fallisce.
 
 ## 📦 Release automatica
 
-Per generare una release: basta fare un commit che contiene la keyword: ***RELEASE***
+Per generare una release: basta fare un commit che contiene la keyword:
+***`RELEASE (vX.Y.Z)`***
 
 Dopo il merge su `main`:
 - viene compilato il progetto  
