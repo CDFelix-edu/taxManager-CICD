@@ -22,25 +22,23 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # 1. Cerchiamo la PR. Proviamo prima con il branch specifico, poi con la più recente su main.
-          PR_NUMBER=$(gh pr list --head "auto-update-${{ github.event.workflow_run.run_number }}" --json number --jq '.[0].number')
-          
-          if [ "$PR_NUMBER" == "null" ] || [ -z "$PR_NUMBER" ]; then
-            echo "PR specifica per il run non trovata, cerco l'ultima PR aperta verso main..."
-            PR_NUMBER=$(gh pr list --base main --state open --limit 1 --json number --jq '.[0].number')
-          fi
+          # 1. Cerchiamo qualsiasi PR aperta che punta al main
+          # Prendiamo la più recente per sicurezza
+          PR_NUMBER=$(gh pr list --base main --state open --limit 1 --json number --jq '.[0].number')
 
-          # 2. Se abbiamo un numero di PR valido, procediamo
           if [ "$PR_NUMBER" != "null" ] && [ -n "$PR_NUMBER" ]; then
-            echo "PR trovata: $PR_NUMBER. Recupero il titolo..."
+            echo "PR trovata: $PR_NUMBER"
             
-            # Recuperiamo il titolo (che contiene la tua keyword RELEASE)
+            # 2. Recuperiamo il titolo per non perdere la keyword RELEASE
             PR_TITLE=$(gh pr view "$PR_NUMBER" --json title --jq '.title')
-            echo "Titolo recuperato: $PR_TITLE"
+            echo "Titolo PR: $PR_TITLE"
 
-            # Eseguiamo lo squash merge usando il titolo della PR come titolo del commit
+            # 3. Eseguiamo il merge. 
+            # NOTA: usiamo --subject per passare il titolo con la keyword
             gh pr merge "$PR_NUMBER" --squash --admin --delete-branch --subject "$PR_TITLE"
-            echo "Merge completato con successo!"
+            
+            echo "Merge effettuato con successo."
           else
-            echo "Nessuna PR aperta trovata. Operazione annullata."
+            echo "Errore: Nessuna PR aperta trovata verso il branch main."
+            exit 0 # Usciamo senza errore per non far fallire il workflow inutilmente
           fi
