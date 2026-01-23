@@ -37,7 +37,7 @@ jobs:
           
           BRANCH_NAME="auto-update-${{ github.run_id }}"
           git checkout -b $BRANCH_NAME
-          git commit --allow-empty -m "Trigger PR: Verifiche completate"
+          git commit --allow-empty -m "$USER_MSG"
           git push origin $BRANCH_NAME
           echo "NEW_BRANCH=$BRANCH_NAME" >> $GITHUB_ENV
 
