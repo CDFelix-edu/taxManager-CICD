@@ -20,11 +20,19 @@ jobs:
       - name: Extract Version from Commit
         id: get_version
         run: |
-          # Estrae il testo dentro le parentesi dopo RELEASE
-          # Esempio: RELEASE (v1.2.3) -> v1.2.3
+          # Recuperiamo il messaggio del commit
           COMMIT_MSG="${{ github.event.head_commit.message }}"
-          VERSION=$(echo "$COMMIT_MSG" | grep -oP 'RELEASE \(\K[^\)]+')
+          
+          # Estraiamo la versione, ma prendiamo solo la PRIMA riga trovata
+          VERSION=$(echo "$COMMIT_MSG" | grep -oP 'RELEASE \(\K[^\)]+' | head -n 1)
+          
+          if [ -z "$VERSION" ]; then
+            echo "ERRORE: Versione non trovata nel messaggio del commit."
+            exit 1
+          fi
+          
           echo "Versione estratta: $VERSION"
+          # Sintassi corretta per salvare l'output
           echo "tag=$VERSION" >> $GITHUB_OUTPUT
 
       - name: Set up JDK 17
