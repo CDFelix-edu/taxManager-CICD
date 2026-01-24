@@ -2,9 +2,8 @@ name: Auto create pull request
 
 on:
   push:
-    branches-ignore:
-      - main
-      - 'auto-update-*'
+    branches:
+      - branchDev
 
 jobs:
   auto-create-pr:
