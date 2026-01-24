@@ -1,0 +1,58 @@
+version: '3.8'
+
+services:
+  database:
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: unimol
+      POSTGRES_PASSWORD: ${DB_PASSWORD} # Usiamo una variabile per la sicurezza
+      POSTGRES_DB: unimol
+    deploy:
+      restart_policy:
+        condition: on-failure
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    networks:
+      - micro_net
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    environment:
+      RABBITMQ_DEFAULT_USER: calaresedf
+      RABBITMQ_DEFAULT_PASS: microservizi
+    networks:
+      - micro_net
+
+  # LA TUA APP
+  taxmanager:
+    image: ghcr.io/${GITHUB_REPOSITORY_OWNER}/taxmanager:latest
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://database:5432/unimol
+      SPRING_DATASOURCE_USERNAME: unimol
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
+      SPRING_RABBITMQ_HOST: rabbitmq
+    deploy:
+      replicas: 2 # Swarm terrà attive 2 copie della tua app
+      update_config:
+        parallelism: 1
+        delay: 10s
+    networks:
+      - micro_net
+    ports:
+      - "8080:8080"
+
+  # GLI STUB (Devono essere immagini già pronte su GHCR o DockerHub)
+  gestioneutenti:
+    image: ghcr.io/${GITHUB_REPOSITORY_OWNER}/gestione-utenti-stub:latest
+    networks:
+      - micro_net
+
+  # ... stessa cosa per pagopa e reportistica ...
+
+volumes:
+  db-data:
+
+networks:
+  micro_net:
+    driver: overlay
+    attachable: true
