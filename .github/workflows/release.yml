@@ -22,7 +22,8 @@ jobs:
         id: get_version
         run: |
           # Recuperiamo il messaggio del commit
-          COMMIT_MSG="${{ github.event.head_commit.message }}" | head -n 1)
+          FULL_MSG="${{ github.event.head_commit.message }}"
+          COMMIT_MSG=$(echo "$FULL_MSG" | head -n 1)
           
           # Estraiamo la versione, ma prendiamo solo la PRIMA riga trovata
           VERSION=$(echo "$COMMIT_MSG" | grep -oP 'RELEASE \(\K[^\)]+' | head -n 1)
