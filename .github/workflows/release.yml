@@ -7,9 +7,8 @@ on:
 
 jobs:
   release:
-    # Si attiva se trova RELEASE (v...) NON TOCCARE LA FORMATTAZIONE, STA SCRITTO BENE COSI
-    if: contains(split(github.event.head_commit.message, '
-')[0], 'RELEASE (v')
+    # Si attiva se trova RELEASE (v...)
+    if: github.event.head_commit.message != '' && contains(github.event.head_commit.message, 'RELEASE (v')
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -25,30 +24,43 @@ jobs:
           # Recuperiamo il messaggio del commit
           FULL_MSG="${{ github.event.head_commit.message }}"
           COMMIT_MSG=$(echo "$FULL_MSG" | head -n 1)
-          
-          # Estraiamo la versione, ma prendiamo solo la PRIMA riga trovata
-          VERSION=$(echo "$COMMIT_MSG" | grep -oP 'RELEASE \(\K[^\)]+' | head -n 1)
-          
-          if [ -z "$VERSION" ]; then
-            echo "ERRORE: Versione non trovata nel messaggio del commit."
-            exit 1
+
+          # 2. Controllo della Keyword
+          if [[ "$COMMIT_MSG" == *"RELEASE (v"* ]]; then
+            echo "Keyword trovata. Procedo all'estrazione..."
+      
+            # Estrazione della versione
+            VERSION=$(echo "$COMMIT_MSG" | grep -oP 'RELEASE \(\K[^\)]+' | head -n 1)
+      
+            # 3. SE la keyword c'è ma la versione è vuota -> ERRORE (Croce Rossa)
+            if [ -z "$VERSION" ]; then
+              echo "::error::Versione non trovata o formato errato nel titolo!"
+              exit 1
+            fi
+      
+            # Se tutto ok, esportiamo i dati
+            echo "match=true" >> $GITHUB_OUTPUT
+            echo "tag=$VERSION" >> $GITHUB_OUTPUT
+            echo "Versione estratta: $VERSION"
+          else
+            # 4. SE la keyword non c'è proprio -> SKIP (Spunta Verde)
+            echo "Nessuna release nel titolo. Salto il job senza errori."
+            echo "match=false" >> $GITHUB_OUTPUT
           fi
-          
-          echo "Versione estratta: $VERSION"
-          # Sintassi corretta per salvare l'output
-          echo "tag=$VERSION" >> $GITHUB_OUTPUT
 
       - name: Set up JDK 17
+        if: steps.get_version.outputs.match == 'true'
         uses: actions/setup-java@v4
         with:
-          java-version: '17'
-          distribution: 'temurin'
-          cache: 'maven'
+          java-version: "17"
+          distribution: "temurin"
+          cache: "maven"
 
       #- name: Build JAR
       #  run: mvn -B clean package -DskipTests
 
       - name: Log in to GHCR
+        if: steps.get_version.outputs.match == 'true'
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
@@ -56,23 +68,25 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build and Push Docker image
+        if: steps.get_version.outputs.match == 'true'
         run: |
           VERSION_TAG=${{ steps.get_version.outputs.tag }}
           REPO_NAME=ghcr.io/${{ github.repository_owner }}/taxmanager
-          
+
           echo "Costruisco l'immagine per la versione: $VERSION_TAG"
-          
+
           # Costruiamo l'immagine con 3 tag: la versione, lo SHA e latest
           docker build -t $REPO_NAME:$VERSION_TAG \
                        -t $REPO_NAME:${{ github.sha }} \
                        -t $REPO_NAME:latest .
-          
+
           # Pushiamo tutto
           docker push $REPO_NAME:$VERSION_TAG
           docker push $REPO_NAME:${{ github.sha }}
           docker push $REPO_NAME:latest
 
       - name: Create GitHub Release
+        if: steps.get_version.outputs.match == 'true'
         uses: softprops/action-gh-release@v1
         with:
           tag_name: ${{ steps.get_version.outputs.tag }}
