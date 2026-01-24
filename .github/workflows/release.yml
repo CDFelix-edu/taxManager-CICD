@@ -82,4 +82,4 @@ jobs:
             **Messaggio:** ${{ github.event.head_commit.message }}
           #files: target/*.jar
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}z
