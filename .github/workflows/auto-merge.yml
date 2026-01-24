@@ -42,4 +42,4 @@ jobs:
             echo "Errore: Nessuna PR aperta trovata verso il branch main."
             exit 0 # Usciamo senza errore per non far fallire il workflow inutilmente
           fi
-          
+        
