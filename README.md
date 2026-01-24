@@ -1,7 +1,6 @@
 # 📚 Microservizio Gestione Tasse Universitarie — Documentazione Tecnica
 
-Compito:
-
+**Compito:**
 Gestione delle Tasse Universitarie (responsabile della gestione delle informazioni relative alle tasse universitarie, le scadenze, i metodi di pagamento e lo stato dei pagamenti degli studenti):
 -	(Amministrativi) Gestione delle soglie ISEE per la determinazione delle tasse degli studenti
 -	(Amministrativi) Generazione degli avvisi di pagamento per tutti gli studenti (in PDF)
@@ -204,7 +203,6 @@ Questo garantisce che `main` rimanga sempre stabile, testato e conforme agli sta
 ## 🧪 CI Pipeline – Build & Test
 
 La pipeline CI esegue:
-
 - `mvn -B clean verify`
 - Test JUnit
 - Test con database H2
@@ -221,7 +219,6 @@ Il progetto utilizza due configurazioni distinte:
 #### 🔸 warnings.xml (non blocca la build)
 
 Regole principali:
-
 - LineLength ≤ 140
 - WhitespaceAround
 - WhitespaceAfter
@@ -232,7 +229,6 @@ Obiettivo: migliorare leggibilità e formattazione.
 #### 🔹 errors.xml (blocca la build)
 
 Regole principali:
-
 - TypeName → classi in PascalCase  
 - AvoidStarImport → vietati `import *`  
 - LocalVariableName → variabili in camelCase  
@@ -245,13 +241,11 @@ Obiettivo: garantire standard minimi obbligatori.
 ### 🐞 SpotBugs
 
 Configurazione:
-
 - effort = max  
 - threshold = Low  
 - failOnError = true  
 
 SpotBugs analizza:
-
 - null pointer potenziali  
 - errori logici  
 - vulnerabilità  
@@ -264,7 +258,6 @@ Se trova bug → la CI fallisce.
 ### 📊 JaCoCo – Code Coverage
 
 Configurazione:
-
 - Report generato in `target/site/jacoco`
 - Coverage minima richiesta:
   - 20% LINE COVEREDRATIO (coverage bassa usata a puro scopo formativo)
@@ -280,13 +273,14 @@ Se la coverage è inferiore → la CI fallisce.
 ## 📦 Release automatica
 
 Per generare una release: basta fare un commit che contiene la keyword:
-***`RELEASE (vX.Y.Z)`***
+**`RELEASE (vX.Y.Z)`**
 
 Dopo il merge su `main`:
 - viene compilato il progetto  
-- viene generato il JAR  
+- viene generata la docker image  
 - viene creata una release nella sezione **Releases**  
-- il JAR viene allegato automaticamente  
+- l'immagine viene allegata automaticamente
+- viene inviata al server  Docker Swarm  
 
 ---
 
