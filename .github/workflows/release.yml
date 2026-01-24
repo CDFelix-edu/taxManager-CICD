@@ -8,8 +8,12 @@ on:
 jobs:
   release:
     # Si attiva se trova RELEASE (v...) NON TOCCARE LA FORMATTAZIONE, STA SCRITTO BENE COSI
-    if: contains(split(github.event.head_commit.message, '
-')[0], 'RELEASE (v')
+    if: |
+      contains(
+        split(github.event.head_commit.message, '
+')[0], 
+        'RELEASE (v'
+      )
     runs-on: ubuntu-latest
     permissions:
       contents: write
