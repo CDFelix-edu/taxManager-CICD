@@ -30,7 +30,7 @@ jobs:
             echo "Keyword trovata. Procedo all'estrazione..."
       
             # Estrazione della versione
-            VERSION=$(echo "$COMMIT_MSG" | grep -oP 'RELEASE \(\K[^\)]+' | head -n 1)
+            VERSION=$(echo "$COMMIT_MSG" | grep -oP 'RELEASE \(\Kv[0-9]+\.[0-9]+\.[0-9]+(?=\))' | head -n 1)
       
             # 3. SE la keyword c'è ma la versione è vuota -> ERRORE (Croce Rossa)
             if [ -z "$VERSION" ]; then
@@ -71,7 +71,7 @@ jobs:
         if: steps.get_version.outputs.match == 'true'
         run: |
           VERSION_TAG=${{ steps.get_version.outputs.tag }}
-          REPO_NAME=ghcr.io/${{ github.repository_owner }}/taxmanager
+          REPO_NAME=$(echo "ghcr.io/${{ github.repository_owner }}/taxmanager" | tr '[:upper:]' '[:lower:]')
 
           echo "Costruisco l'immagine per la versione: $VERSION_TAG"
 
@@ -98,4 +98,3 @@ jobs:
           #files: target/*.jar
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          
