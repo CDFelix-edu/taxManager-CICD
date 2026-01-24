@@ -71,7 +71,7 @@ jobs:
         if: steps.get_version.outputs.match == 'true'
         run: |
           VERSION_TAG=${{ steps.get_version.outputs.tag }}
-          REPO_NAME=ghcr.io/${{ github.repository_owner }}/taxmanager
+          REPO_NAME=$(echo "ghcr.io/${{ github.repository_owner }}/taxmanager" | tr '[:upper:]' '[:lower:]')
 
           echo "Costruisco l'immagine per la versione: $VERSION_TAG"
 
