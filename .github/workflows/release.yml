@@ -12,6 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      packages: write
 
     steps:
       - name: Checkout repository
@@ -42,8 +43,32 @@ jobs:
           distribution: 'temurin'
           cache: 'maven'
 
-      - name: Build JAR
-        run: mvn -B clean package -DskipTests
+      #- name: Build JAR
+      #  run: mvn -B clean package -DskipTests
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and Push Docker image
+        run: |
+          VERSION_TAG=${{ steps.get_version.outputs.tag }}
+          REPO_NAME=ghcr.io/${{ github.repository_owner }}/taxmanager
+          
+          echo "Costruisco l'immagine per la versione: $VERSION_TAG"
+          
+          # Costruiamo l'immagine con 3 tag: la versione, lo SHA e latest
+          docker build -t $REPO_NAME:$VERSION_TAG \
+                       -t $REPO_NAME:${{ github.sha }} \
+                       -t $REPO_NAME:latest .
+          
+          # Pushiamo tutto
+          docker push $REPO_NAME:$VERSION_TAG
+          docker push $REPO_NAME:${{ github.sha }}
+          docker push $REPO_NAME:latest
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
@@ -54,6 +79,6 @@ jobs:
             ### 🚀 Nuova Release Manuale
             **Versione:** `${{ steps.get_version.outputs.tag }}`
             **Messaggio:** ${{ github.event.head_commit.message }}
-          files: target/*.jar
+          #files: target/*.jar
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

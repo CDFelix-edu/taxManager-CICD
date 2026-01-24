@@ -30,8 +30,3 @@ build/
 .vscode/
 
 *.log
-
-### Temporanee ###
-Dockerfile
-docker-compose.yml
-docker-stack.yml
