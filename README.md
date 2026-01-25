@@ -286,9 +286,9 @@ Dopo il merge su `main`:
 
 # 🧭 Branching model consigliato
 
-- `main` → stabile, protetto, solo merge automatici  
-- `branchDev` → branch permanente di sviluppo (beta)
-- altri branch → opzionali per feature specifiche  (alfa e test)
+- `main` → stabile, protetto, solo merge automatici o pull request da altri rami (richiede superamento della build)
+- `branchDev` → branch permanente di sviluppo (beta), esecuzione pipeline automatica e pull request e merge automatici verso main (salvo conflitti da risolvere)
+- altri branch → opzionali per feature specifiche  (alfa e test) non sono impostate action
 
 ---
 
