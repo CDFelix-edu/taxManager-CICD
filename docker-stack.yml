@@ -2,16 +2,16 @@ version: '3.8'
 
 services:
   database:
-    image: postgres:latest
+    image: postgres:15-alpine
     environment:
       POSTGRES_USER: unimol
-      POSTGRES_PASSWORD: ${DB_PASSWORD} # Usiamo una variabile per la sicurezza
+      POSTGRES_PASSWORD: calaresedf
       POSTGRES_DB: unimol
     deploy:
       restart_policy:
         condition: on-failure
     volumes:
-      - db-data:/var/lib/postgresql/data
+      - db_prod_data:/var/lib/postgresql/data
     networks:
       - micro_net
 
@@ -20,37 +20,64 @@ services:
     environment:
       RABBITMQ_DEFAULT_USER: calaresedf
       RABBITMQ_DEFAULT_PASS: microservizi
+    ports:
+      - "5672:5672"
+      - "15672:15672"
     networks:
       - micro_net
 
-  # LA TUA APP
   taxmanager:
-    image: ghcr.io/${GITHUB_REPOSITORY_OWNER}/taxmanager:latest
+    image: ghcr.io/cdfelix-edu/taxmanager:latest
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://database:5432/unimol
       SPRING_DATASOURCE_USERNAME: unimol
-      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
+      SPRING_DATASOURCE_PASSWORD: calaresedf
       SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_PORT: 5672
+      SPRING_RABBITMQ_USERNAME: calaresedf
+      SPRING_RABBITMQ_PASSWORD: microservizi
     deploy:
-      replicas: 2 # Swarm terrà attive 2 copie della tua app
-      update_config:
-        parallelism: 1
-        delay: 10s
-    networks:
-      - micro_net
+      replicas: 2
+      restart_policy:
+        condition: on-failure
     ports:
       - "8080:8080"
-
-  # GLI STUB (Devono essere immagini già pronte su GHCR o DockerHub)
-  gestioneutenti:
-    image: ghcr.io/${GITHUB_REPOSITORY_OWNER}/gestione-utenti-stub:latest
     networks:
       - micro_net
 
-  # ... stessa cosa per pagopa e reportistica ...
+  gestioneutenti:
+    image: ghcr.io/cdfelix-edu/gestione-utenti-stub:latest
+    ports:
+      - "23109:23109"
+    networks:
+      - micro_net
+
+  pagopa:
+    image: ghcr.io/cdfelix-edu/pagopa-stub:latest
+    ports:
+      - "23110:23110"
+    networks:
+      - micro_net
+
+  reportistica:
+    image: ghcr.io/cdfelix-edu/reportistica-stub:latest
+    ports:
+      - "23111:23111"
+    networks:
+      - micro_net
+
+  pgadmin:
+    image: dpage/pgadmin4
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@unimol.it
+      PGADMIN_DEFAULT_PASSWORD: admin123
+    ports:
+      - "5050:80"
+    networks:
+      - micro_net
 
 volumes:
-  db-data:
+  db_prod_data: # Nome pulito senza trattini problematici o doppie lettere
 
 networks:
   micro_net:
